@@ -3437,6 +3437,7 @@ const I18N = {
     'opd.task': 'Taak', 'opd.ppe': 'Vereiste PBM',
     'sit.situation': 'Situatie', 'sec.attention': 'Aandachtspunten',
     'phase.prep': 'Voorbereiding', 'phase.execute': 'Uitvoering', 'phase.secure': 'Veiligstellen',
+    'phase.deviation': 'Afwijking', 'phase.assess': 'Waarnemen', 'phase.act': 'Handelen', 'phase.report': 'Rapporteren',
     'log.label': 'Eigen actie-log', 'log.empty': 'Nog geen acties gelogd.', 'log.ph': 'Actie...',
     'advice.deviation': 'Advies bij afwijking', 'advice.secure': 'Veiligstellen-advies',
     'exec.auto': 'automatisch',
@@ -3507,6 +3508,7 @@ const I18N = {
     'opd.task': 'Task', 'opd.ppe': 'Required PPE',
     'sit.situation': 'Situation', 'sec.attention': 'Points of attention',
     'phase.prep': 'Preparation', 'phase.execute': 'Execution', 'phase.secure': 'Make safe',
+    'phase.deviation': 'Deviation', 'phase.assess': 'Observe', 'phase.act': 'Act', 'phase.report': 'Report',
     'log.label': 'Own action log', 'log.empty': 'No actions logged yet.', 'log.ph': 'Action...',
     'advice.deviation': 'Advice on deviation', 'advice.secure': 'Make-safe advice',
     'exec.auto': 'automatic',
@@ -5763,12 +5765,13 @@ function getActiveStep() {
 }
 
 function getPhaseName(p) {
-  return {
+  const key = {
     // procedural
-    prep:'Voorbereiding', execute:'Uitvoering', deviation:'Afwijking', secure:'Veiligstellen',
+    prep:'phase.prep', execute:'phase.execute', deviation:'phase.deviation', secure:'phase.secure',
     // incident
-    assess:'Waarnemen', act:'Handelen', report:'Rapporteren'
-  }[p] || p;
+    assess:'phase.assess', act:'phase.act', report:'phase.report'
+  }[p];
+  return key ? t(key) : p;
 }
 
 function clockTick() {
@@ -5845,7 +5848,7 @@ function pauseScenario() {
   // UI: knop omwisselen + overlay tonen + systeem-melding
   const btn = $('pause-btn');
   if (btn) {
-    btn.innerHTML = '▶ Hervat';
+    btn.innerHTML = t('pause.resume');
     btn.classList.add('paused');
     btn.title = 'Scenario hervatten';
   }
@@ -5882,7 +5885,7 @@ function resumeScenario() {
   // UI: knop terug + overlay weg + systeem-melding
   const btn = $('pause-btn');
   if (btn) {
-    btn.innerHTML = '⏸ Pauze';
+    btn.innerHTML = t('pause.btn');
     btn.classList.remove('paused');
     btn.title = 'Pauzeer scenario';
   }
@@ -6661,13 +6664,13 @@ function renderActionLogBlock() {
   if (!log || log.enabled === false) return '';
   return `
     <div class="field-group">
-      <div class="field-label">Eigen actie-log</div>
+      <div class="field-label">${t('log.label')}</div>
       <div class="action-log">
         ${(STATE.actionLog || []).map(entry =>
           `<div class="log-entry"><span class="log-time">${esc(entry.time)}</span> ${esc(entry.text)}</div>`
-        ).join('') || '<div class="log-empty">Nog geen acties gelogd.</div>'}
+        ).join('') || `<div class="log-empty">${t('log.empty')}</div>`}
         <div class="log-input-row">
-          <input type="text" id="action-log-input" placeholder="${esc(log.placeholder || 'Actie...')}" onkeydown="if(event.key==='Enter'){addActionLog();}">
+          <input type="text" id="action-log-input" placeholder="${esc(log.placeholder || t('log.ph'))}" onkeydown="if(event.key==='Enter'){addActionLog();}">
           <button onclick="addActionLog()">+</button>
         </div>
       </div>
@@ -6694,12 +6697,12 @@ function renderSituatie() {
 
   $('tab-primary').innerHTML = `
     <div class="field-group">
-      <div class="field-label">Situatie</div>
+      <div class="field-label">${t('sit.situation')}</div>
       <div class="field-value" style="line-height:1.55">${esc(ie.participantCue && ie.participantCue.trim() ? ie.participantCue : 'Je neemt iets waar. Beoordeel de situatie.')}</div>
     </div>
 
     ${visibleActions.length ? `
-      <div class="action-section-header">Aandachtspunten</div>
+      <div class="action-section-header">${t('sec.attention')}</div>
       ${hintsHtml}
     ` : ''}
 
@@ -6734,7 +6737,7 @@ function renderOpdracht() {
   const ppeConfig = (p && p.requiredPPE) || {};
   const ppeItems = [];
   if (ppeConfig.standardSet) {
-    ppeItems.push({ key: 'std', label: 'Standaard PBM' });
+    ppeItems.push({ key: 'std', label: t('ppe.standard') });
   }
   (ppeConfig.additional || []).forEach((item, i) => {
     ppeItems.push({ key: `add-${i}`, label: item });
@@ -6745,9 +6748,9 @@ function renderOpdracht() {
 
   const lmraBlock = (p && p.requireLMRA) ? (
     STATE.lmraCompleted 
-      ? `<div class="lmra-status done">✓ LMRA voltooid</div>`
-      : `<div class="lmra-status">LMRA nog niet ingevuld
-           <div><button onclick="openLMRA()">LMRA invullen</button></div>
+      ? `<div class="lmra-status done">${t('lmra.done')}</div>`
+      : `<div class="lmra-status">${t('lmra.notdone')}
+           <div><button onclick="openLMRA()">${t('lmra.fill')}</button></div>
          </div>`
   ) : '';
 
@@ -6777,9 +6780,9 @@ function renderOpdracht() {
   const showSecureAdvice = (STATE.currentPhase === 'secure' || STATE.currentPhase === 'deviation')
                           && (a.secureAdvice || '').trim() !== '';
   const devEnabled = getScenario().deviation?.enabled !== false;
-  const adviceHeader = devEnabled ? 'Advies bij afwijking' : 'Veiligstellen-advies';
+  const adviceHeader = devEnabled ? t('advice.deviation') : t('advice.secure');
   const secureBlock = showSecureAdvice ? `
-    <div class="action-section-header">Veiligstellen</div>
+    <div class="action-section-header">${t('phase.secure')}</div>
     <div class="secure-advice">
       <div class="header">${esc(adviceHeader)}</div>
       ${esc(a.secureAdvice || '')}
@@ -6788,21 +6791,21 @@ function renderOpdracht() {
 
   $('tab-primary').innerHTML = `
     <div class="field-group">
-      <div class="field-label">Taak</div>
+      <div class="field-label">${t('opd.task')}</div>
       <div class="field-value">${esc(a.title || p.task)}</div>
     </div>
     <div class="field-group">
-      <div class="field-label">Vereiste PBM</div>
+      <div class="field-label">${t('opd.ppe')}</div>
       <ul class="ppe-list">${ppe}</ul>
     </div>
     ${lmraBlock}
 
-    <div class="action-section-header">Voorbereiding</div>
+    <div class="action-section-header">${t('phase.prep')}</div>
     ${prepActionsHtml}
 
     <div class="action-section-header">
-      <span>Uitvoering</span>
-      <span class="auto-tag">automatisch</span>
+      <span>${t('phase.execute')}</span>
+      <span class="auto-tag">${t('exec.auto')}</span>
     </div>
     ${executeActionsHtml}
 
@@ -6815,7 +6818,7 @@ function renderOpdracht() {
 function renderSOP() {
   // Read-only weergave van de volledige SOP — referentie-document
   const phases = ['prep', 'execute', 'secure'];
-  const phaseLabels = { prep:'Voorbereiding', execute:'Uitvoering', secure:'Veiligstellen' };
+  const phaseLabels = { prep:t('phase.prep'), execute:t('phase.execute'), secure:t('phase.secure') };
 
   let html = `
     <div class="sop-header">
@@ -7445,7 +7448,7 @@ async function startScenario() {
   if (pauseBtn) {
     pauseBtn.disabled = false;
     pauseBtn.classList.remove('paused');
-    pauseBtn.innerHTML = '⏸ Pauze';
+    pauseBtn.innerHTML = t('pause.btn');
   }
   STATE.clockInterval = setInterval(clockTick, 1000);
   clockTick();
@@ -7510,16 +7513,16 @@ function renderTabs() {
   if (sc.scenarioType === 'incident') {
     const hasProc = !!sc.referenceProcedure;
     tabs.innerHTML = `
-      <div class="tab active" data-tab="situatie" onclick="switchTab('situatie')">Situatie</div>
-      ${hasProc ? '<div class="tab" data-tab="procedure" onclick="switchTab(\'procedure\')">Procedure</div>' : ''}
+      <div class="tab active" data-tab="situatie" onclick="switchTab('situatie')">${t('tab.situatie')}</div>
+      ${hasProc ? `<div class="tab" data-tab="procedure" onclick="switchTab(\'procedure\')">${t('tab.procedure')}</div>` : ''}
     `;
     $('tab-primary').dataset.tab = 'situatie';
     $('tab-secondary').dataset.tab = 'procedure';
     $('tab-secondary').style.display = hasProc ? '' : 'none';
   } else {
     tabs.innerHTML = `
-      <div class="tab active" data-tab="opdracht" onclick="switchTab('opdracht')">Opdracht</div>
-      <div class="tab" data-tab="sop" onclick="switchTab('sop')">SOP</div>
+      <div class="tab active" data-tab="opdracht" onclick="switchTab('opdracht')">${t('tab.opdracht')}</div>
+      <div class="tab" data-tab="sop" onclick="switchTab('sop')">${t('tab.sop')}</div>
     `;
     $('tab-primary').dataset.tab = 'opdracht';
     $('tab-secondary').dataset.tab = 'sop';
@@ -7875,7 +7878,7 @@ function endScenario(reason) {
   if (pauseBtn) {
     pauseBtn.disabled = true;
     pauseBtn.classList.remove('paused');
-    pauseBtn.innerHTML = '⏸ Pauze';
+    pauseBtn.innerHTML = t('pause.btn');
   }
   goToDebrief(false);
 }
