@@ -3443,6 +3443,15 @@ const I18N = {
     'exec.auto': 'automatisch',
     'lmra.done': '✓ LMRA voltooid', 'lmra.notdone': 'LMRA nog niet ingevuld', 'lmra.fill': 'LMRA invullen',
     'ppe.standard': 'Standaard PBM',
+    'chat.you': 'Jij',
+    'onsite.promptDefault': 'Sta even stil bij de werkplek voordat je iets aanraakt. Wat zie, hoor en ruik je? Komt de situatie overeen met wat je verwachtte? Bevestig pas als je bewust hebt rondgekeken.',
+    'onsite.confirmDefault': 'LMRA uitgevoerd — situatie veilig',
+    'onsite.confirmedLog': 'LMRA op locatie bevestigd.',
+    'pause.resumeTitle': 'Scenario hervatten',
+    'err.aiCall': 'Fout bij AI-aanroep: ',
+    'err.voice': 'Spraakfout: ',
+    'log.phase': 'Fase: {name}',
+    'log.actionDone': 'Actie voltooid: {label}',
   },
   en: {
     'key.sub': 'No API key found in the scenario file. Enter an Anthropic API key manually to continue.',
@@ -3514,6 +3523,15 @@ const I18N = {
     'exec.auto': 'automatic',
     'lmra.done': '✓ LMRA completed', 'lmra.notdone': 'LMRA not completed yet', 'lmra.fill': 'Complete LMRA',
     'ppe.standard': 'Standard PPE',
+    'chat.you': 'You',
+    'onsite.promptDefault': 'Pause at the work site before you touch anything. What do you see, hear and smell? Does the situation match what you expected? Only confirm once you have deliberately looked around.',
+    'onsite.confirmDefault': 'LMRA done — situation safe',
+    'onsite.confirmedLog': 'On-site LMRA confirmed.',
+    'pause.resumeTitle': 'Resume scenario',
+    'err.aiCall': 'AI request error: ',
+    'err.voice': 'Voice error: ',
+    'log.phase': 'Phase: {name}',
+    'log.actionDone': 'Action completed: {label}',
   },
 };
 
@@ -4846,9 +4864,7 @@ function handleVoiceError(err) {
 
   if (bar && lbl) {
     bar.classList.add('active');
-    lbl.textContent = effL === 'en'
-      ? ('Voice error: ' + (err?.message || err?.type || 'unknown'))
-      : ('Spraakfout: ' + (err?.message || err?.type || 'onbekend'));
+    lbl.textContent = t('err.voice') + (err?.message || err?.type || 'unknown');
     setTimeout(() => { bar.classList.remove('active'); }, 3500);
   }
   if (badge && (err?.type === 'network' || err?.type === 'transcribe')) {
@@ -5850,7 +5866,7 @@ function pauseScenario() {
   if (btn) {
     btn.innerHTML = t('pause.resume');
     btn.classList.add('paused');
-    btn.title = 'Scenario hervatten';
+    btn.title = t('pause.resumeTitle');
   }
   const overlay = $('pause-overlay');
   if (overlay) overlay.classList.add('active');
@@ -6539,7 +6555,7 @@ async function callClaude(userMessage) {
 
   } catch (e) {
     console.error('AI call error:', e);
-    addSystemMessage('Fout bij AI-aanroep: ' + e.message);
+    addSystemMessage(t('err.aiCall') + e.message);
   } finally {
     showTyping(false);
     STATE.isProcessing = false;
@@ -7115,7 +7131,7 @@ function addUserMessage(text, channelName) {
   div.className = 'msg you';
   div.innerHTML = `
     <div class="meta">
-      <span class="role">Jij → ${esc(channelName)}</span>
+      <span class="role">${t('chat.you')} → ${esc(channelName)}</span>
       <span class="time">${esc(time)}</span>
     </div>
     <div class="text">${esc(text)}</div>
@@ -7631,9 +7647,9 @@ function maybeShowOnSiteLMRA() {
 function showOnSiteLMRA(os) {
   // Fallback-teksten (NL) — worden in de Player-i18n-stap gekeyd.
   const promptText = (os.prompt && os.prompt.trim())
-    || 'Sta even stil bij de werkplek voordat je iets aanraakt. Wat zie, hoor en ruik je? Komt de situatie overeen met wat je verwachtte? Bevestig pas als je bewust hebt rondgekeken.';
+    || t('onsite.promptDefault');
   const confirmLabel = (os.confirmLabel && os.confirmLabel.trim())
-    || 'LMRA uitgevoerd — situatie veilig';
+    || t('onsite.confirmDefault');
 
   $('onsite-lmra-prompt').textContent = promptText;
   const btn = $('btn-onsite-lmra-confirm');
@@ -7680,7 +7696,7 @@ function confirmOnSiteLMRA() {
 
   STATE.onsiteLmraDone = true;
   $('modal-onsite-lmra').classList.remove('active');
-  addSystemMessage('LMRA op locatie bevestigd.');
+  addSystemMessage(t('onsite.confirmedLog'));
   callClaude('(deelnemer heeft de LMRA op locatie uitgevoerd en bevestigd dat de situatie veilig is voordat met de uitvoering wordt begonnen)');
 }
 
@@ -7743,7 +7759,7 @@ function setPhase(newPhase) {
   tryLoadStorylineSlide();
   applyAmbientForCurrentPhase();
   applyUrgencyTheme();
-  addSystemMessage(`Fase: ${getPhaseName(newPhase)}`);
+  addSystemMessage(t('log.phase', { name: getPhaseName(newPhase) }));
 
   // On-site LMRA gate: bij het bereiken van de uitvoeringsfase (= aankomst
   // op de werkplek) eenmalig de reflectie-modal tonen vóór de eerste handeling.
@@ -7777,7 +7793,7 @@ function markActionDone(actionId) {
 
   renderLeftPanel();
   renderEnvironment();  // stap-gebonden signalen kunnen nu zichtbaar/onzichtbaar worden
-  addSystemMessage(`Actie voltooid: ${action.action || action.label}`);
+  addSystemMessage(t('log.actionDone', { label: action.action || action.label }));
 }
 
 function triggerHoldPoint(hpId) {
