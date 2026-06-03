@@ -2520,10 +2520,10 @@ input, textarea {
      ═══════════════════════════════════════════════════════════ -->
 <div class="screen" id="screen-key">
   <h1>OIP Field Scenario</h1>
-  <p class="sub">Geen API-sleutel in het scenariobestand gevonden. Voer handmatig een Anthropic API-sleutel in om door te gaan.</p>
+  <p class="sub" data-i18n="key.sub">Geen API-sleutel in het scenariobestand gevonden. Voer handmatig een Anthropic API-sleutel in om door te gaan.</p>
   <input id="input-api-key" type="password" placeholder="sk-ant-..." autocomplete="off">
-  <div><button id="btn-confirm-key">Doorgaan</button></div>
-  <p class="note">De sleutel wordt alleen in deze sessie gebruikt en gaat rechtstreeks naar de Anthropic API. Niet opgeslagen. Normaal zit de sleutel al in het scenario, ingebouwd door de scenariobouwer.</p>
+  <div><button id="btn-confirm-key" data-i18n="key.continue">Doorgaan</button></div>
+  <p class="note" data-i18n="key.note">De sleutel wordt alleen in deze sessie gebruikt en gaat rechtstreeks naar de Anthropic API. Niet opgeslagen. Normaal zit de sleutel al in het scenario, ingebouwd door de scenariobouwer.</p>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════
@@ -2531,34 +2531,34 @@ input, textarea {
      ═══════════════════════════════════════════════════════════ -->
 <div class="screen active" id="screen-choose">
   <div class="choose-wrap">
-    <div class="title">Kies een scenario</div>
-    <h1>Beschikbare scenario's</h1>
-    <p class="sub">Twee demo-scenario's zijn beschikbaar in deze MVP, of laad een eigen scenario dat in de Field Controller is gebouwd. Alle scenario's gebruiken hetzelfde Player-systeem.</p>
+    <div class="title" data-i18n="choose.title">Kies een scenario</div>
+    <h1 data-i18n="choose.h1">Beschikbare scenario's</h1>
+    <p class="sub" data-i18n="choose.sub">Twee demo-scenario's zijn beschikbaar in deze MVP, of laad een eigen scenario dat in de Field Controller is gebouwd. Alle scenario's gebruiken hetzelfde Player-systeem.</p>
 
     <div class="scenario-cards">
       <div class="scenario-card" data-scenario="pump-p101" onclick="chooseScenario('pump-p101')">
         <div class="type-badge procedural">Procedural</div>
-        <h3>Pomp P-101 opstarten na onderhoud</h3>
-        <p>Standaard opstartprocedure voor een centrifugaalpomp na onderhoud, volgens SOP. Tijdens uitvoering ontstaat cavitatie. Test van SOP-discipline en reageren op afwijking.</p>
+        <h3 data-i18n="choose.pump.title">Pomp P-101 opstarten na onderhoud</h3>
+        <p data-i18n="choose.pump.desc">Standaard opstartprocedure voor een centrifugaalpomp na onderhoud, volgens SOP. Tijdens uitvoering ontstaat cavitatie. Test van SOP-discipline en reageren op afwijking.</p>
         <div class="meta">
-          <span>4 fasen</span><span>•</span><span>SOP-gedreven</span><span>•</span><span>Difficulty 3</span>
+          <span data-i18n="choose.pump.meta1">4 fasen</span><span>•</span><span data-i18n="choose.pump.meta2">SOP-gedreven</span><span>•</span><span>Difficulty 3</span>
         </div>
       </div>
 
       <div class="scenario-card" data-scenario="leak-p204" onclick="chooseScenario('leak-p204')">
         <div class="type-badge incident">Incident</div>
-        <h3>Onverwachte lekkage tijdens routinerondje</h3>
-        <p>Tijdens een routinerondje stuit de operator op een lekkage bij pompput P-204. Geen alarm, geen SOP. Test van situatie-beoordeling, prioritering en correcte rapportage onder druk.</p>
+        <h3 data-i18n="choose.leak.title">Onverwachte lekkage tijdens routinerondje</h3>
+        <p data-i18n="choose.leak.desc">Tijdens een routinerondje stuit de operator op een lekkage bij pompput P-204. Geen alarm, geen SOP. Test van situatie-beoordeling, prioritering en correcte rapportage onder druk.</p>
         <div class="meta">
-          <span>3 fasen</span><span>•</span><span>Beoordelings-gedreven</span><span>•</span><span>Difficulty 4</span>
+          <span data-i18n="choose.leak.meta1">3 fasen</span><span>•</span><span data-i18n="choose.leak.meta2">Beoordelings-gedreven</span><span>•</span><span>Difficulty 4</span>
         </div>
       </div>
 
       <!-- 3e kaart: eigen scenario laden (lege staat) -->
       <div class="scenario-card loader-empty" id="loader-card" onclick="triggerCustomLoad()">
         <div class="loader-icon">↑</div>
-        <h3>Eigen scenario laden</h3>
-        <p>Laad een scenario-bestand uit de Field Controller (.json)</p>
+        <h3 data-i18n="choose.loader.title">Eigen scenario laden</h3>
+        <p data-i18n="choose.loader.desc">Laad een scenario-bestand uit de Field Controller (.json)</p>
       </div>
     </div>
 
@@ -2574,44 +2574,44 @@ input, textarea {
      SCREEN: Briefing
      ═══════════════════════════════════════════════════════════ -->
 <div class="screen" id="screen-briefing">
-  <div class="title">Scenario-briefing</div>
+  <div class="title" data-i18n="brief.title">Scenario-briefing</div>
   <h1 id="briefing-title">—</h1>
   <div class="org" id="briefing-org">—</div>
 
   <div class="briefing-content">
-    <h3>Achtergrond</h3>
+    <h3 data-i18n="brief.background">Achtergrond</h3>
     <p id="briefing-description">—</p>
     <div id="briefing-event-row" style="display:none">
-      <h3 style="margin-top:18px">Initiële situatie</h3>
+      <h3 style="margin-top:18px" data-i18n="brief.initialSituation">Initiële situatie</h3>
       <p id="briefing-event">—</p>
     </div>
     <div id="briefing-sop-row">
-      <h3 style="margin-top:18px">Te volgen procedure</h3>
+      <h3 style="margin-top:18px" data-i18n="brief.procedure">Te volgen procedure</h3>
       <p id="briefing-sop">—</p>
     </div>
     <div id="briefing-permit-row">
-      <h3 style="margin-top:18px">Werkpermit</h3>
+      <h3 style="margin-top:18px" data-i18n="brief.permit">Werkpermit</h3>
       <p id="briefing-permit">—</p>
     </div>
   </div>
 
   <div class="name-input">
-    <label>Jouw naam (voor in de rapportages)</label>
-    <input id="input-name" type="text" placeholder="Voor- en achternaam">
+    <label data-i18n="brief.nameLabel">Jouw naam (voor in de rapportages)</label>
+    <input id="input-name" type="text" placeholder="Voor- en achternaam" data-i18n-ph="brief.namePh">
   </div>
 
   <div class="lang-select">
-    <label>Communicatietaal</label>
+    <label data-i18n="brief.commLang">Communicatietaal</label>
     <div class="lang-buttons">
       <button type="button" class="lang-btn active" data-lang="nl" onclick="setLanguage('nl')">Nederlands</button>
       <button type="button" class="lang-btn" data-lang="de" onclick="setLanguage('de')">Deutsch</button>
       <button type="button" class="lang-btn" data-lang="en" onclick="setLanguage('en')">English</button>
       <button type="button" class="lang-btn" data-lang="es" onclick="setLanguage('es')">Español</button>
     </div>
-    <div class="lang-note">Radio, instructeur en omgevingstekst in deze taal. HMI-labels en vaktermen blijven Engels.</div>
+    <div class="lang-note" data-i18n="brief.langNote">Radio, instructeur en omgevingstekst in deze taal. HMI-labels en vaktermen blijven Engels.</div>
   </div>
 
-  <button id="btn-start-scenario" disabled>Scenario starten</button>
+  <button id="btn-start-scenario" disabled data-i18n="brief.start">Scenario starten</button>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════
@@ -2628,8 +2628,8 @@ input, textarea {
       <div class="location-dropdown" id="location-dropdown"></div>
     </div>
     <div class="spacer"></div>
-    <button id="pause-btn" class="pause-btn" type="button" onclick="togglePause()" title="Pauzeer scenario" disabled>⏸ Pauze</button>
-    <button id="audio-toggle" class="audio-btn" title="Geluid aan (klik om uit te schakelen)" onclick="audioToggle()">🔊</button>
+    <button id="pause-btn" class="pause-btn" type="button" onclick="togglePause()" title="Pauzeer scenario" data-i18n-title="pause.title" disabled>⏸ Pauze</button>
+    <button id="audio-toggle" class="audio-btn" title="Geluid aan (klik om uit te schakelen)" data-i18n-title="audio.titleOn" onclick="audioToggle()">🔊</button>
     <div class="clock" id="clock">00:00</div>
   </div>
 
@@ -2637,7 +2637,7 @@ input, textarea {
   <div id="pause-overlay">
     <div class="pause-card">
       <div class="pause-led"></div>
-      <span id="pause-overlay-text">Scenario gepauzeerd</span>
+      <span id="pause-overlay-text" data-i18n="pause.overlay">Scenario gepauzeerd</span>
     </div>
   </div>
 
@@ -2663,51 +2663,51 @@ input, textarea {
         <button id="expand-close-btn" onclick="collapseStoryline()">✕&nbsp;&nbsp;Sluiten</button>
         <iframe id="storyline-frame" allow="fullscreen" style="display:none"></iframe>
         <div id="storyline-placeholder">
-          <div class="label">Veldzicht</div>
+          <div class="label" data-i18n="mid.fieldview">Veldzicht</div>
           <div class="loc-name" id="placeholder-loc">—</div>
-          <div class="hint">[MVP: Storyline-slide verschijnt hier zodra URLs vervangen worden]</div>
+          <div class="hint" data-i18n="mid.placeholderHint">[MVP: Storyline-slide verschijnt hier zodra URLs vervangen worden]</div>
         </div>
       </div>
 
       <div id="environment-text">
-        <span class="env-label">Je neemt waar<span class="live-dot" title="Dynamische waarneming — wijzigt mee met de situatie"></span></span>
+        <span class="env-label" data-i18n="env.label">Je neemt waar<span class="live-dot" title="Dynamische waarneming — wijzigt mee met de situatie" data-i18n-title="env.liveTitle"></span></span>
         <span id="environment-content">—</span>
       </div>
 
       <div class="observation-buttons">
-        <button class="obs-btn" onclick="observe('zicht')">👁 Kijk</button>
-        <button class="obs-btn" onclick="observe('geluid')">👂 Luister</button>
-        <button class="obs-btn" onclick="observe('geur')">👃 Ruik</button>
-        <button class="obs-btn" onclick="observe('aanraking')">✋ Voel</button>
+        <button class="obs-btn" onclick="observe('zicht')" data-i18n="obs.look">👁 Kijk</button>
+        <button class="obs-btn" onclick="observe('geluid')" data-i18n="obs.listen">👂 Luister</button>
+        <button class="obs-btn" onclick="observe('geur')" data-i18n="obs.smell">👃 Ruik</button>
+        <button class="obs-btn" onclick="observe('aanraking')" data-i18n="obs.touch">✋ Voel</button>
       </div>
 
       <div id="input-bar">
         <div class="channel-row">
-          <span>Spreek tot:</span>
+          <span data-i18n="input.speakTo">Spreek tot:</span>
           <span class="current-channel" id="current-channel-display">CRO</span>
           <span id="voice-err-badge" title="">⚠ voice offline</span>
         </div>
         <div id="voice-tip" style="display:none">
           <span class="vt-icon">⎵</span>
           <span id="vt-text"></span>
-          <button type="button" id="vt-dismiss" title="Verbergen">×</button>
+          <button type="button" id="vt-dismiss" title="Verbergen" data-i18n-title="voice.dismissTitle">×</button>
         </div>
         <div id="voice-status">
           <div class="vs-dot"></div>
-          <span id="vs-label">Opname loopt…</span>
+          <span id="vs-label" data-i18n="voice.recording">Opname loopt…</span>
           <div class="vs-meter" id="vs-meter"></div>
           <span class="vs-time" id="vs-time">00:00</span>
         </div>
         <div id="voice-ticker">
           <div class="vt-track" id="vt-track"></div>
         </div>
-        <textarea id="input-text" placeholder="Typ je bericht en druk op verzenden (of Enter)..." rows="4"></textarea>
+        <textarea id="input-text" placeholder="Typ je bericht en druk op verzenden (of Enter)..." data-i18n-ph="input.ph" rows="4"></textarea>
         <div class="input-actions">
-          <button id="ptt-btn" type="button" title="Houd vast om te spreken (of houd spatiebalk ingedrukt)" disabled>
+          <button id="ptt-btn" type="button" title="Houd vast om te spreken (of houd spatiebalk ingedrukt)" data-i18n-title="ptt.title" disabled>
             <span class="ptt-icon"></span>
-            <span id="ptt-label">Houd vast om te spreken</span>
+            <span id="ptt-label" data-i18n="ptt.hold">Houd vast om te spreken</span>
           </button>
-          <button id="btn-send" onclick="sendUserMessage()">Verzend</button>
+          <button id="btn-send" onclick="sendUserMessage()" data-i18n="send.btn">Verzend</button>
         </div>
       </div>
     </section>
@@ -2774,11 +2774,11 @@ input, textarea {
 <div class="modal-backdrop" id="modal-lmra">
   <div class="modal">
     <h2>Last-Minute Risk Assessment</h2>
-    <div class="sub">Beantwoord onderstaande vragen met 'ja' door ze aan te vinken voordat je verder gaat.</div>
+    <div class="sub" data-i18n="lmra.sub">Beantwoord onderstaande vragen met 'ja' door ze aan te vinken voordat je verder gaat.</div>
     <div id="lmra-questions"></div>
     <div class="modal-actions">
-      <button class="btn-secondary" onclick="closeLMRA()">Later</button>
-      <button class="btn-primary" id="btn-lmra-confirm" disabled onclick="confirmLMRA()">Bevestigen</button>
+      <button class="btn-secondary" onclick="closeLMRA()" data-i18n="lmra.later">Later</button>
+      <button class="btn-primary" id="btn-lmra-confirm" disabled onclick="confirmLMRA()" data-i18n="lmra.confirm">Bevestigen</button>
     </div>
   </div>
 </div>
@@ -2788,10 +2788,10 @@ input, textarea {
      ═══════════════════════════════════════════════════════════ -->
 <div class="modal-backdrop" id="modal-onsite-lmra">
   <div class="modal">
-    <h2 id="onsite-lmra-title">LMRA op locatie</h2>
+    <h2 id="onsite-lmra-title" data-i18n="onsite.title">LMRA op locatie</h2>
     <div class="sub" id="onsite-lmra-prompt">—</div>
     <div class="modal-actions">
-      <button class="btn-primary" id="btn-onsite-lmra-confirm" disabled onclick="confirmOnSiteLMRA()">Bevestigen</button>
+      <button class="btn-primary" id="btn-onsite-lmra-confirm" disabled onclick="confirmOnSiteLMRA()" data-i18n="lmra.confirm">Bevestigen</button>
     </div>
   </div>
 </div>
@@ -2801,11 +2801,11 @@ input, textarea {
      ═══════════════════════════════════════════════════════════ -->
 <div id="overlay-holdpoint">
   <div class="stop-card">
-    <div class="stop-label"><span id="hp-icon">⛔</span> Scenario gestopt</div>
+    <div class="stop-label"><span id="hp-icon">⛔</span> <span data-i18n="hp.stopped">Scenario gestopt</span></div>
     <h2 id="hp-category-label">—</h2>
     <div class="lsr-name" id="hp-lsr-name">—</div>
     <div class="stop-msg" id="hp-message">—</div>
-    <button id="hp-button" onclick="goToDebrief(true)">Naar debrief</button>
+    <button id="hp-button" onclick="goToDebrief(true)" data-i18n="hp.toDebrief">Naar debrief</button>
   </div>
 </div>
 
@@ -2814,14 +2814,14 @@ input, textarea {
      ═══════════════════════════════════════════════════════════ -->
 <div class="screen" id="screen-debrief">
   <h1>Debrief</h1>
-  <div class="sub" id="debrief-sub">Evaluatie van je doorlopen scenario.</div>
-  <div id="debrief-content" class="loading">De Instructeur stelt de evaluatie samen...</div>
+  <div class="sub" id="debrief-sub" data-i18n="debrief.sub">Evaluatie van je doorlopen scenario.</div>
+  <div id="debrief-content" class="loading" data-i18n="debrief.loading">De Instructeur stelt de evaluatie samen...</div>
   <div class="debrief-actions" id="debrief-actions" style="display:none">
     <button class="debrief-action-btn" id="btn-export-pdf" onclick="exportDebriefPDF()">
-      <span class="ico">⬇</span> <span>PDF-rapport</span>
+      <span class="ico">⬇</span> <span data-i18n="debrief.pdf">PDF-rapport</span>
     </button>
     <button class="debrief-action-btn" id="btn-export-xlsx" onclick="exportDebriefExcel()">
-      <span class="ico">⬇</span> <span>Excel-rij</span>
+      <span class="ico">⬇</span> <span data-i18n="debrief.xlsx">Excel-rij</span>
     </button>
   </div>
 </div>
@@ -3356,6 +3356,184 @@ let voiceSpaceDown = false;
 // Effectieve taal voor de voice-module (volgt STATE.communicationLanguage)
 function getEffectiveLang() {
   return STATE.communicationLanguage || 'nl';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   I18N — interface-chrome (NL bron + EN). Volgt getEffectiveLang().
+   LET OP: dit vertaalt ALLEEN interface-teksten, NOOIT auteur-inhoud
+   (SOP-stappen, opdrachttekst, signaaltekst, rol-/locatienamen).
+   DE/ES vallen voorlopig terug op EN tot ze gevuld zijn.
+   ═══════════════════════════════════════════════════════════════ */
+const I18N = {
+  nl: {
+    // screen: API key
+    'key.sub': 'Geen API-sleutel in het scenariobestand gevonden. Voer handmatig een Anthropic API-sleutel in om door te gaan.',
+    'key.continue': 'Doorgaan',
+    'key.note': 'De sleutel wordt alleen in deze sessie gebruikt en gaat rechtstreeks naar de Anthropic API. Niet opgeslagen. Normaal zit de sleutel al in het scenario, ingebouwd door de scenariobouwer.',
+    // screen: choose
+    'choose.title': 'Kies een scenario',
+    'choose.h1': "Beschikbare scenario's",
+    'choose.sub': "Twee demo-scenario's zijn beschikbaar in deze MVP, of laad een eigen scenario dat in de Field Controller is gebouwd. Alle scenario's gebruiken hetzelfde Player-systeem.",
+    'choose.pump.title': 'Pomp P-101 opstarten na onderhoud',
+    'choose.pump.desc': 'Standaard opstartprocedure voor een centrifugaalpomp na onderhoud, volgens SOP. Tijdens uitvoering ontstaat cavitatie. Test van SOP-discipline en reageren op afwijking.',
+    'choose.pump.meta1': '4 fasen',
+    'choose.pump.meta2': 'SOP-gedreven',
+    'choose.leak.title': 'Onverwachte lekkage tijdens routinerondje',
+    'choose.leak.desc': 'Tijdens een routinerondje stuit de operator op een lekkage bij pompput P-204. Geen alarm, geen SOP. Test van situatie-beoordeling, prioritering en correcte rapportage onder druk.',
+    'choose.leak.meta1': '3 fasen',
+    'choose.leak.meta2': 'Beoordelings-gedreven',
+    'choose.loader.title': 'Eigen scenario laden',
+    'choose.loader.desc': 'Laad een scenario-bestand uit de Field Controller (.json)',
+    // screen: briefing
+    'brief.title': 'Scenario-briefing',
+    'brief.background': 'Achtergrond',
+    'brief.initialSituation': 'Initiële situatie',
+    'brief.procedure': 'Te volgen procedure',
+    'brief.permit': 'Werkpermit',
+    'brief.nameLabel': 'Jouw naam (voor in de rapportages)',
+    'brief.namePh': 'Voor- en achternaam',
+    'brief.commLang': 'Communicatietaal',
+    'brief.langNote': 'Radio, instructeur en omgevingstekst in deze taal. HMI-labels en vaktermen blijven Engels.',
+    'brief.start': 'Scenario starten',
+    // scenario chrome — topbar/middle/input
+    'pause.btn': '⏸ Pauze',
+    'pause.resume': '▶ Hervat',
+    'pause.title': 'Pauzeer scenario',
+    'pause.overlay': 'Scenario gepauzeerd',
+    'audio.titleOn': 'Geluid aan (klik om uit te schakelen)',
+    'mid.fieldview': 'Veldzicht',
+    'mid.placeholderHint': '[MVP: Storyline-slide verschijnt hier zodra URLs vervangen worden]',
+    'env.label': 'Je neemt waar',
+    'env.liveTitle': 'Dynamische waarneming — wijzigt mee met de situatie',
+    'obs.look': '👁 Kijk', 'obs.listen': '👂 Luister', 'obs.smell': '👃 Ruik', 'obs.touch': '✋ Voel',
+    'input.speakTo': 'Spreek tot:',
+    'voice.dismissTitle': 'Verbergen',
+    'voice.recording': 'Opname loopt…',
+    'input.ph': 'Typ je bericht en druk op verzenden (of Enter)...',
+    'ptt.title': 'Houd vast om te spreken (of houd spatiebalk ingedrukt)',
+    'ptt.hold': 'Houd vast om te spreken',
+    'ptt.release': 'Laat los om te versturen',
+    'ptt.recording': 'Opname actief…',
+    'ptt.transcribing': 'Transcriberen…',
+    'ptt.processing': 'Verwerken…',
+    'ptt.disabled': 'Voice uit',
+    'ptt.offline': 'Voice offline',
+    'send.btn': 'Verzend',
+    // LMRA / on-site
+    'lmra.sub': "Beantwoord onderstaande vragen met 'ja' door ze aan te vinken voordat je verder gaat.",
+    'lmra.later': 'Later',
+    'lmra.confirm': 'Bevestigen',
+    'onsite.title': 'LMRA op locatie',
+    // hold-point
+    'hp.stopped': 'Scenario gestopt',
+    'hp.toDebrief': 'Naar debrief',
+    // debrief shell
+    'debrief.sub': 'Evaluatie van je doorlopen scenario.',
+    'debrief.loading': 'De Instructeur stelt de evaluatie samen...',
+    'debrief.pdf': 'PDF-rapport',
+    'debrief.xlsx': 'Excel-rij',
+    // dynamic render labels (gewired in v34)
+    'tab.opdracht': 'Opdracht', 'tab.sop': 'SOP', 'tab.situatie': 'Situatie', 'tab.procedure': 'Procedure',
+    'opd.task': 'Taak', 'opd.ppe': 'Vereiste PBM',
+    'sit.situation': 'Situatie', 'sec.attention': 'Aandachtspunten',
+    'phase.prep': 'Voorbereiding', 'phase.execute': 'Uitvoering', 'phase.secure': 'Veiligstellen',
+    'log.label': 'Eigen actie-log', 'log.empty': 'Nog geen acties gelogd.', 'log.ph': 'Actie...',
+    'advice.deviation': 'Advies bij afwijking', 'advice.secure': 'Veiligstellen-advies',
+    'exec.auto': 'automatisch',
+    'lmra.done': '✓ LMRA voltooid', 'lmra.notdone': 'LMRA nog niet ingevuld', 'lmra.fill': 'LMRA invullen',
+    'ppe.standard': 'Standaard PBM',
+  },
+  en: {
+    'key.sub': 'No API key found in the scenario file. Enter an Anthropic API key manually to continue.',
+    'key.continue': 'Continue',
+    'key.note': 'The key is used only in this session and goes directly to the Anthropic API. Not stored. Normally the key is already in the scenario, embedded by the scenario builder.',
+    'choose.title': 'Choose a scenario',
+    'choose.h1': 'Available scenarios',
+    'choose.sub': 'Two demo scenarios are available in this MVP, or load your own scenario built in the Field Controller. All scenarios use the same Player system.',
+    'choose.pump.title': 'Starting pump P-101 after maintenance',
+    'choose.pump.desc': 'Standard start-up procedure for a centrifugal pump after maintenance, per SOP. Cavitation develops during execution. Tests SOP discipline and response to deviation.',
+    'choose.pump.meta1': '4 phases',
+    'choose.pump.meta2': 'SOP-driven',
+    'choose.leak.title': 'Unexpected leak during a routine round',
+    'choose.leak.desc': 'During a routine round the operator encounters a leak at pump pit P-204. No alarm, no SOP. Tests situation assessment, prioritisation and correct reporting under pressure.',
+    'choose.leak.meta1': '3 phases',
+    'choose.leak.meta2': 'Assessment-driven',
+    'choose.loader.title': 'Load your own scenario',
+    'choose.loader.desc': 'Load a scenario file from the Field Controller (.json)',
+    'brief.title': 'Scenario briefing',
+    'brief.background': 'Background',
+    'brief.initialSituation': 'Initial situation',
+    'brief.procedure': 'Procedure to follow',
+    'brief.permit': 'Work permit',
+    'brief.nameLabel': 'Your name (for the reports)',
+    'brief.namePh': 'First and last name',
+    'brief.commLang': 'Communication language',
+    'brief.langNote': 'Radio, instructor and environment text in this language. HMI labels and technical terms stay English.',
+    'brief.start': 'Start scenario',
+    'pause.btn': '⏸ Pause',
+    'pause.resume': '▶ Resume',
+    'pause.title': 'Pause scenario',
+    'pause.overlay': 'Scenario paused',
+    'audio.titleOn': 'Sound on (click to mute)',
+    'mid.fieldview': 'Field view',
+    'mid.placeholderHint': '[MVP: Storyline slide appears here once URLs are set]',
+    'env.label': 'You observe',
+    'env.liveTitle': 'Dynamic observation — changes with the situation',
+    'obs.look': '👁 Look', 'obs.listen': '👂 Listen', 'obs.smell': '👃 Smell', 'obs.touch': '✋ Feel',
+    'input.speakTo': 'Speak to:',
+    'voice.dismissTitle': 'Hide',
+    'voice.recording': 'Recording…',
+    'input.ph': 'Type your message and press send (or Enter)...',
+    'ptt.title': 'Hold to speak (or hold the spacebar)',
+    'ptt.hold': 'Hold to speak',
+    'ptt.release': 'Release to send',
+    'ptt.recording': 'Recording…',
+    'ptt.transcribing': 'Transcribing…',
+    'ptt.processing': 'Processing…',
+    'ptt.disabled': 'Voice off',
+    'ptt.offline': 'Voice offline',
+    'send.btn': 'Send',
+    'lmra.sub': "Answer the questions below with 'yes' by ticking them before you continue.",
+    'lmra.later': 'Later',
+    'lmra.confirm': 'Confirm',
+    'onsite.title': 'On-site LMRA',
+    'hp.stopped': 'Scenario stopped',
+    'hp.toDebrief': 'To debrief',
+    'debrief.sub': 'Evaluation of the scenario you completed.',
+    'debrief.loading': 'The instructor is preparing the evaluation...',
+    'debrief.pdf': 'PDF report',
+    'debrief.xlsx': 'Excel row',
+    'tab.opdracht': 'Assignment', 'tab.sop': 'SOP', 'tab.situatie': 'Situation', 'tab.procedure': 'Procedure',
+    'opd.task': 'Task', 'opd.ppe': 'Required PPE',
+    'sit.situation': 'Situation', 'sec.attention': 'Points of attention',
+    'phase.prep': 'Preparation', 'phase.execute': 'Execution', 'phase.secure': 'Make safe',
+    'log.label': 'Own action log', 'log.empty': 'No actions logged yet.', 'log.ph': 'Action...',
+    'advice.deviation': 'Advice on deviation', 'advice.secure': 'Make-safe advice',
+    'exec.auto': 'automatic',
+    'lmra.done': '✓ LMRA completed', 'lmra.notdone': 'LMRA not completed yet', 'lmra.fill': 'Complete LMRA',
+    'ppe.standard': 'Standard PPE',
+  },
+};
+
+// t(key, vars): huidige taal → EN → NL → key. {var}-interpolatie.
+function t(key, vars) {
+  const L = getEffectiveLang();
+  const cur = I18N[L] || {};
+  let s = (key in cur) ? cur[key]
+        : (I18N.en && key in I18N.en) ? I18N.en[key]
+        : (I18N.nl && key in I18N.nl) ? I18N.nl[key]
+        : key;
+  if (vars) for (const k in vars) s = s.replace(new RegExp('\\{' + k + '\\}', 'g'), vars[k]);
+  return s;
+}
+
+// Past alle data-i18n* attributen toe op statische chrome-elementen.
+function applyStaticI18n(root) {
+  root = root || document;
+  root.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.getAttribute('data-i18n')); });
+  root.querySelectorAll('[data-i18n-html]').forEach(el => { el.innerHTML = t(el.getAttribute('data-i18n-html')); });
+  root.querySelectorAll('[data-i18n-ph]').forEach(el => { el.setAttribute('placeholder', t(el.getAttribute('data-i18n-ph'))); });
+  root.querySelectorAll('[data-i18n-title]').forEach(el => { el.setAttribute('title', t(el.getAttribute('data-i18n-title'))); });
 }
 
 /* ─── Microfoon-kalibratie (v15) ─────────────────────────────
@@ -3909,7 +4087,7 @@ class InlineVoiceInput {
 async function initVoiceInput() {
   if (!VOICE_CONFIG.enabled) {
     console.log('[OIP voice] Voice input disabled in config');
-    setVoicePttLabel(getEffectiveLang() === 'en' ? 'Voice disabled' : 'Voice uit');
+    setVoicePttLabel(t('ptt.disabled'));
     return;
   }
 
@@ -3973,7 +4151,7 @@ async function initVoiceInput() {
     console.log('[OIP voice] Voice input ready (inline) · lang=' + getEffectiveLang() +
                 ' · endpoint=' + voiceInput.endpoint);
     if (errBadge) errBadge.style.display = 'none';
-    setVoicePttLabel(getEffectiveLang() === 'en' ? 'Hold to speak' : 'Houd vast om te spreken');
+    setVoicePttLabel(t('ptt.hold'));
     pttBtn.disabled = false;
 
     buildVoiceMeter();
@@ -4563,20 +4741,20 @@ function handleVoiceStateChange(state) {
   if (state === 'recording') {
     btn.classList.add('is-recording');
     bar.classList.add('active');
-    if (lbl) lbl.textContent = effL === 'en' ? 'Recording…' : 'Opname actief…';
-    setVoicePttLabel(effL === 'en' ? 'Release to send' : 'Laat los om te versturen');
+    if (lbl) lbl.textContent = t('ptt.recording');
+    setVoicePttLabel(t('ptt.release'));
     startVoicePttTimer();
     hideVoiceTicker();
   } else if (state === 'processing') {
     btn.classList.add('is-processing');
     bar.classList.add('active', 'processing');
-    if (lbl) lbl.textContent = effL === 'en' ? 'Transcribing…' : 'Transcriberen…';
-    setVoicePttLabel(effL === 'en' ? 'Processing…' : 'Verwerken…');
+    if (lbl) lbl.textContent = t('ptt.transcribing');
+    setVoicePttLabel(t('ptt.processing'));
     stopVoicePttTimer();
     updateVoiceMeter(0);
     showVoiceTicker();
   } else {
-    setVoicePttLabel(effL === 'en' ? 'Hold to speak' : 'Houd vast om te spreken');
+    setVoicePttLabel(t('ptt.hold'));
     stopVoicePttTimer();
     updateVoiceMeter(0);
     hideVoiceTicker();
@@ -6511,16 +6689,6 @@ function renderSituatie() {
       </div>`;
   }).join('');
 
-  // Werkpermit (optioneel bij incident)
-  const p = sc.workPermit;
-  const permitBlock = p ? `
-    <div class="field-group">
-      <div class="field-label">Permit-to-Work</div>
-      <div class="field-value big">${esc(p.number)}</div>
-      <div class="field-value" style="color:var(--text-dim);font-size:12px">${esc(p.type)}</div>
-    </div>
-  ` : '';
-
   // Eigen actie-log
   const logBlock = renderActionLogBlock();
 
@@ -6529,7 +6697,6 @@ function renderSituatie() {
       <div class="field-label">Situatie</div>
       <div class="field-value" style="line-height:1.55">${esc(ie.participantCue && ie.participantCue.trim() ? ie.participantCue : 'Je neemt iets waar. Beoordeel de situatie.')}</div>
     </div>
-    ${permitBlock}
 
     ${visibleActions.length ? `
       <div class="action-section-header">Aandachtspunten</div>
@@ -6620,15 +6787,6 @@ function renderOpdracht() {
   ` : '';
 
   $('tab-primary').innerHTML = `
-    <div class="field-group">
-      <div class="field-label">Permit-to-Work</div>
-      <div class="field-value big">${esc(p.number)}</div>
-      <div class="field-value" style="color:var(--text-dim);font-size:12px">${esc(p.type)}</div>
-    </div>
-    <div class="field-group">
-      <div class="field-label">Geldig tot</div>
-      <div class="field-value">${esc(p.validUntil)}</div>
-    </div>
     <div class="field-group">
       <div class="field-label">Taak</div>
       <div class="field-value">${esc(a.title || p.task)}</div>
@@ -7258,6 +7416,8 @@ function setLanguage(lang) {
   document.querySelectorAll('.lang-btn').forEach(b => 
     b.classList.toggle('active', b.dataset.lang === lang)
   );
+  // Interface-chrome meteen in de gekozen taal zetten
+  try { applyStaticI18n(); } catch (e) { console.warn('[i18n] applyStaticI18n failed:', e); }
   // Sync voice-module met de gekozen taal (als die al initialised is)
   if (voiceInput && typeof voiceInput.setLanguage === 'function') {
     try { voiceInput.setLanguage(lang); } catch(e) { console.warn('[OIP voice] setLanguage failed:', e); }
@@ -9156,6 +9316,7 @@ function exportDebriefExcel() {
 
 /* ───── 12. INIT ───── */
 window.addEventListener('DOMContentLoaded', () => {
+  try { applyStaticI18n(); } catch (e) { console.warn('[i18n] initial applyStaticI18n failed:', e); }
   $('btn-confirm-key').addEventListener('click', confirmApiKey);
   $('input-api-key').addEventListener('keydown', (e) => { if (e.key === 'Enter') confirmApiKey(); });
   $('input-name').addEventListener('input', onNameInput);
