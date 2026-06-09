@@ -1223,6 +1223,74 @@ input, textarea {
   0%, 100% { opacity: 0.35; transform: scale(0.8); }
   50%      { opacity: 1;    transform: scale(1); }
 }
+#environment-text .env-note {
+  display: block;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-muted);
+  margin: 0 0 6px;
+  font-style: italic;
+}
+
+/* Eenmalige coach-mark die het waarneem-blok aanwijst bij scenariostart. */
+#environment-text.env-coach-highlight {
+  box-shadow: inset 0 0 0 1.5px var(--cyan), 0 0 18px rgba(0, 232, 255, 0.30);
+}
+#env-coachmark {
+  position: fixed;
+  z-index: 4000;
+  max-width: 320px;
+  background: linear-gradient(180deg, #0d2f3c 0%, #0a2530 100%);
+  border: 1px solid var(--cyan);
+  border-radius: 8px;
+  padding: 13px 15px 14px;
+  box-shadow: 0 10px 34px rgba(0,0,0,0.55), 0 0 22px rgba(0,232,255,0.18);
+  display: none;
+}
+#env-coachmark.show {
+  display: block;
+  animation: ecm-in 0.28s ease-out;
+}
+@keyframes ecm-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+#env-coachmark .ecm-arrow {
+  position: absolute;
+  top: -8px;
+  width: 14px;
+  height: 14px;
+  background: #0d2f3c;
+  border-left: 1px solid var(--cyan);
+  border-top: 1px solid var(--cyan);
+  transform: rotate(45deg);
+}
+#env-coachmark .ecm-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cyan);
+  margin-bottom: 6px;
+}
+#env-coachmark .ecm-body {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text);
+}
+#env-coachmark .ecm-btn {
+  margin-top: 11px;
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--bg-deep);
+  background: var(--cyan);
+  border: 0;
+  border-radius: 5px;
+  cursor: pointer;
+}
+#env-coachmark .ecm-btn:hover { background: #50f2ff; }
 
 .observation-buttons {
   display: grid;
@@ -2641,6 +2709,15 @@ input, textarea {
     </div>
   </div>
 
+  <!-- Eenmalige coach-mark: legt bij scenariostart uit dat alleen de deelnemer
+       de omgevingssignalen waarneemt en ze via de radio moet melden. -->
+  <div id="env-coachmark" role="dialog">
+    <div class="ecm-arrow"></div>
+    <div class="ecm-title" data-i18n="coach.envTitle">👁 Alleen jij neemt dit waar</div>
+    <div class="ecm-body" data-i18n="coach.envBody">Dit blok toont wat jij ter plaatse ziet, hoort en ruikt. De controlekamer (CRO) ziet dit niet. Beoordeel zelf wat belangrijk is en meld het via de radio.</div>
+    <button type="button" class="ecm-btn" onclick="dismissEnvCoachmark()" data-i18n="coach.gotIt">Begrepen</button>
+  </div>
+
   <div class="panels">
 
     <!-- LEFT PANEL -->
@@ -2670,7 +2747,8 @@ input, textarea {
       </div>
 
       <div id="environment-text">
-        <span class="env-label" data-i18n="env.label">Je neemt waar<span class="live-dot" title="Dynamische waarneming — wijzigt mee met de situatie" data-i18n-title="env.liveTitle"></span></span>
+        <span class="env-label"><span data-i18n="env.label">Wat alleen jij waarneemt</span><span class="live-dot" title="Dynamische waarneming — wijzigt mee met de situatie" data-i18n-title="env.liveTitle"></span></span>
+        <span class="env-note" data-i18n="env.note">De controlekamer ziet dit niet — meld wat van belang is via de radio.</span>
         <span id="environment-content">—</span>
       </div>
 
@@ -3403,8 +3481,12 @@ const I18N = {
     'audio.titleOn': 'Geluid aan (klik om uit te schakelen)',
     'mid.fieldview': 'Veldzicht',
     'mid.placeholderHint': '[MVP: Storyline-slide verschijnt hier zodra URLs vervangen worden]',
-    'env.label': 'Je neemt waar',
+    'env.label': 'Wat alleen jij waarneemt',
+    'env.note': 'De controlekamer ziet dit niet — meld wat van belang is via de radio.',
     'env.liveTitle': 'Dynamische waarneming — wijzigt mee met de situatie',
+    'coach.envTitle': '👁 Alleen jij neemt dit waar',
+    'coach.envBody': 'Dit blok toont wat jij ter plaatse ziet, hoort en ruikt. De controlekamer (CRO) ziet dit niet. Beoordeel zelf wat belangrijk is en meld het via de radio.',
+    'coach.gotIt': 'Begrepen',
     'obs.look': '👁 Kijk', 'obs.listen': '👂 Luister', 'obs.smell': '👃 Ruik', 'obs.touch': '✋ Voel',
     'input.speakTo': 'Spreek tot:',
     'voice.dismissTitle': 'Verbergen',
@@ -3487,8 +3569,12 @@ const I18N = {
     'audio.titleOn': 'Sound on (click to mute)',
     'mid.fieldview': 'Field view',
     'mid.placeholderHint': '[MVP: Storyline slide appears here once URLs are set]',
-    'env.label': 'You observe',
+    'env.label': 'What only you observe',
+    'env.note': 'The control room cannot see this — report what matters over the radio.',
     'env.liveTitle': 'Dynamic observation — changes with the situation',
+    'coach.envTitle': '👁 Only you perceive this',
+    'coach.envBody': 'This panel shows what you see, hear and smell on site. The control room (CRO) cannot see it. Judge for yourself what matters and report it over the radio.',
+    'coach.gotIt': 'Got it',
     'obs.look': '👁 Look', 'obs.listen': '👂 Listen', 'obs.smell': '👃 Smell', 'obs.touch': '✋ Feel',
     'input.speakTo': 'Speak to:',
     'voice.dismissTitle': 'Hide',
@@ -6405,6 +6491,11 @@ DYNAMIEK EN REALISME
 - CRO is professioneel maar niet alwetend. Mag zelf vragen stellen, niet alles weten.
 - Als deelnemer een SOP-stap "verkeerd" doet maar geen hold-point raakt: CRO of collega MAG terloops iets opmerken, maar GRIJPT NIET IN. De fout blijft staan en wordt in debrief besproken.
 
+WAARNEMING IS LOKAAL — de radiorollen kijken NIET mee:
+- De radiorollen (CRO, collega, supervisor) zitten elders en kunnen NIET zien, horen of ruiken wat de deelnemer ter plaatse waarneemt. De omgevingssignalen in het "Wat alleen jij waarneemt"-blok zijn UITSLUITEND voor de deelnemer. De radio weet alleen wat de deelnemer EXPLICIET meldt.
+- Reageer dus NOOIT uit jezelf op een omgevingssignaal dat de deelnemer nog niet heeft gerapporteerd (geen "ik zie ook dat..."), en doe nooit alsof de CRO een waarneming al kent.
+- Als de deelnemer aanneemt dat de controlekamer meekijkt — bv. "zie je dat?", "jullie zien het lek toch", of handelt alsof de CRO de situatie al kent zonder het te melden — laat de aangesproken radiorol dat ÉÉN keer, kort en in-fictie corrigeren: maak duidelijk dat hij vanaf daar niets kan zien en vraag de deelnemer te beschrijven wat hij waarneemt (bv. "[ROL: CRO] Ik kan vanaf hier niets zien — beschrijf eens wat je daar precies waarneemt, over."). Geen college, geen herhaling, en verklap NOOIT het signaal of de juiste actie.
+
 ═══════════════════════════════════════════════════════════
 EXTRA INSTRUCTIES VOOR DIT SCENARIO
 ═══════════════════════════════════════════════════════════
@@ -6974,6 +7065,42 @@ function flashEnvironment() {
   setTimeout(() => el.classList.remove('env-flash'), 2300);
 }
 
+// ─── Eenmalige coach-mark bij het waarneem-blok ───────────────────────────
+// Verschijnt bij elke scenariostart (geen persistentie: in een training-
+// opstelling moet elke nieuwe deelnemer hem zien). Wijst het "Wat alleen jij
+// waarneemt"-blok aan en legt uit dat de CRO het niet ziet — meld via radio.
+function showEnvCoachmark() {
+  const anchor = $('environment-text');
+  const cm = $('env-coachmark');
+  if (!anchor || !cm) return;
+  cm.classList.add('show');
+  anchor.classList.add('env-coach-highlight');
+  positionEnvCoachmark();
+}
+function positionEnvCoachmark() {
+  const anchor = $('environment-text');
+  const cm = $('env-coachmark');
+  if (!anchor || !cm || !cm.classList.contains('show')) return;
+  const r = anchor.getBoundingClientRect();
+  const top = r.bottom + 10;
+  let left = r.left + r.width / 2 - cm.offsetWidth / 2;
+  left = Math.max(12, Math.min(left, window.innerWidth - cm.offsetWidth - 12));
+  cm.style.top = top + 'px';
+  cm.style.left = left + 'px';
+  const arrow = cm.querySelector('.ecm-arrow');
+  if (arrow) {
+    const arrowLeft = (r.left + r.width / 2) - left;
+    arrow.style.left = Math.max(14, Math.min(arrowLeft, cm.offsetWidth - 28)) + 'px';
+  }
+}
+function dismissEnvCoachmark() {
+  const cm = $('env-coachmark');
+  const anchor = $('environment-text');
+  if (cm) cm.classList.remove('show');
+  if (anchor) anchor.classList.remove('env-coach-highlight');
+}
+window.addEventListener('resize', positionEnvCoachmark);
+
 function tryLoadStorylineSlide() {
   const sc = getScenario();
   const loc = getCurrentLocation();
@@ -7497,6 +7624,9 @@ async function startScenario() {
   if (inp) inp.value = '';
   syncPttToSendButton();
 
+  // Eenmalige uitleg dat alleen de deelnemer de omgevingssignalen waarneemt.
+  showEnvCoachmark();
+
   await callClaude(null);
 }
 
@@ -7870,6 +8000,7 @@ async function sendUserMessage() {
   if (STATE.isPaused || STATE.scenarioEnded) return;
   const txt = $('input-text').value.trim();
   if (!txt) return;
+  dismissEnvCoachmark();  // coach-mark weg zodra de deelnemer begint te melden
   const channelName = getCurrentChannelRoleName();
   addUserMessage(txt, channelName);
   $('input-text').value = '';
