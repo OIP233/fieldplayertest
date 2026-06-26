@@ -3447,6 +3447,33 @@ const STATE = {
 // ═══════════════════════════════════════════════════════════
 const AI_PROXY_URL = 'https://livescenario-proxy.netlify.app/ai';
 
+// ── Toegang + audit (stap 3) ─────────────────────────────────────────────
+// Het toegangstoken komt uit de URL-hash (#tok=…), gezet door de portal/
+// deellink, en gaat met elke proxy-call mee. De proxy bepaalt de toegang
+// (vestiging/demo, einddatum, toegestane varianten) en schrijft bij de
+// debrief de run-audit. Geen geldig token → de proxy weigert (zodra
+// ENFORCE_ACCESS aanstaat).
+const APP_ID = 'field-player';
+function readAccessToken() {
+  try {
+    const p = new URLSearchParams((location.hash || '').replace(/^#/, ''));
+    return p.get('tok') || p.get('token') || '';
+  } catch (_) { return ''; }
+}
+const ACCESS_TOKEN = readAccessToken();
+function collectAudit() {
+  let h;
+  try { h = new URLSearchParams((location.hash || '').replace(/^#/, '')); } catch (_) { h = new URLSearchParams(); }
+  const fromState = (k) => { try { return (typeof STATE !== 'undefined' && STATE && STATE[k]) ? STATE[k] : ''; } catch (_) { return ''; } };
+  let scenario = h.get('scenario') || '';
+  try { if (!scenario && typeof getScenario === 'function') { const s = getScenario(); if (s && s.title) scenario = s.title; } } catch (_) {}
+  return {
+    naam: h.get('naam') || fromState('participantName'),
+    functie: h.get('functie') || fromState('participantRole'),
+    scenario,
+  };
+}
+
 // De debrief is een zware, langzame call (kan >60s duren) en past niet binnen één
 // synchrone serverless-call. Die loopt daarom via een achtergrond-wachtrij:
 // 'debrief-start' triggert een background worker, daarna pollen we 'debrief-result'.
@@ -3458,7 +3485,7 @@ async function requestDebriefViaQueue(promptText) {
   const startRes = await fetch(AI_DEBRIEF_START, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ jobId, max_tokens: 8192, messages: [{ role: 'user', content: promptText }] })
+    body: JSON.stringify({ jobId, token: ACCESS_TOKEN, app: APP_ID, audit: collectAudit(), max_tokens: 8192, messages: [{ role: 'user', content: promptText }] })
   });
   if (startRes.status !== 202 && !startRes.ok) {
     let m = 'HTTP ' + startRes.status;
@@ -6802,6 +6829,7 @@ async function callClaude(userMessage) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        token: ACCESS_TOKEN, app: APP_ID,
         max_tokens: 1500,
         system: systemPrompt,
         messages: STATE.conversationHistory
