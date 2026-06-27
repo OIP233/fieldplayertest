@@ -3461,6 +3461,19 @@ function readAccessToken() {
   } catch (_) { return ''; }
 }
 const ACCESS_TOKEN = readAccessToken();
+function accessDeniedMessage(reason) {
+  switch (reason) {
+    case 'expired': return 'Deze toegang is verlopen. Vraag de organisator om een nieuwe deellink.\n(Access expired — please ask the organiser for a new link.)';
+    case 'variant_not_allowed': return 'Deze variant valt buiten jouw toegang. Neem contact op met de organisator.\n(This scenario type is not included in your access.)';
+    default: return 'Geen geldige toegang. Open de app via je persoonlijke deellink (met token), of neem contact op met de organisator.\n(No valid access — open the app via your personal share link.)';
+  }
+}
+async function aiProxyError(res) {
+  let reason = '', emsg = '';
+  try { const j = await res.json(); reason = j.reason || ''; emsg = (j.error && (j.error.message || j.error)) || j.error || ''; } catch (_) {}
+  if (res.status === 403) { const e = new Error(accessDeniedMessage(reason)); e.access = true; return e; }
+  return new Error('API ' + res.status + (emsg ? ': ' + emsg : ''));
+}
 function collectAudit() {
   let h;
   try { h = new URLSearchParams((location.hash || '').replace(/^#/, '')); } catch (_) { h = new URLSearchParams(); }
@@ -3488,6 +3501,7 @@ async function requestDebriefViaQueue(promptText) {
     body: JSON.stringify({ jobId, token: ACCESS_TOKEN, app: APP_ID, audit: collectAudit(), max_tokens: 8192, messages: [{ role: 'user', content: promptText }] })
   });
   if (startRes.status !== 202 && !startRes.ok) {
+    if (startRes.status === 403) throw await aiProxyError(startRes);
     let m = 'HTTP ' + startRes.status;
     try { m = (await startRes.json()).error || m; } catch (e) {}
     throw new Error('Kon debrief niet starten: ' + m);
@@ -6836,10 +6850,7 @@ async function callClaude(userMessage) {
       })
     });
 
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`API ${res.status}: ${errText}`);
-    }
+    if (!res.ok) throw await aiProxyError(res);
 
     const data = await res.json();
     const reply = data.content?.[0]?.text || '';
@@ -6850,7 +6861,7 @@ async function callClaude(userMessage) {
 
   } catch (e) {
     console.error('AI call error:', e);
-    addSystemMessage(t('err.aiCall') + e.message);
+    addSystemMessage(e.access ? e.message : t('err.aiCall') + e.message);
   } finally {
     showTyping(false);
     STATE.isProcessing = false;
