@@ -8019,6 +8019,11 @@ function toggleAction(actionId) {
   STATE.assignmentChecked[actionId] = !STATE.assignmentChecked[actionId];
   renderLeftPanel();
   renderEnvironment();  // stap-gebonden signalen kunnen nu zichtbaar/onzichtbaar worden
+
+  // v35: ook de voorbereidingsfase kan over meerdere locaties lopen. Werkt in
+  // beide richtingen — haalt de deelnemer een vinkje weg, dan is de vorige
+  // actie weer "aan de beurt" en loopt hij terug naar die locatie.
+  syncLocationToCurrentAction();
 }
 
 function addActionLog() {
