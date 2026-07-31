@@ -3760,6 +3760,7 @@ const I18N = {
     'err.aiCall': 'Fout bij AI-aanroep: ',
     'err.voice': 'Spraakfout: ',
     'log.phase': 'Fase: {name}',
+    'log.location': 'Verplaatst naar: {name}',
     'log.actionDone': 'Actie voltooid: {label}',
     'log.impCaught': 'Procedure-onvolkomenheid opgemerkt: {label}',
     'log.impFalse': 'Correcte stap onterecht als fout aangemerkt: {label}',
@@ -3868,6 +3869,7 @@ const I18N = {
     'err.aiCall': 'AI request error: ',
     'err.voice': 'Voice error: ',
     'log.phase': 'Phase: {name}',
+    'log.location': 'Moved to: {name}',
     'log.actionDone': 'Action completed: {label}',
     'log.impCaught': 'Procedure imperfection noticed: {label}',
     'log.impFalse': 'Correct step wrongly flagged as faulty: {label}',
@@ -6567,10 +6569,16 @@ VOORBEREIDING (deelnemer vinkt zelf af in de UI):
 ${sc.assignment.prepActions.map(a => `  - ${a.id}: ${a.label}`).join('\n')}
 
 UITVOERING (JIJ markeert af als voltooid via [ACTIE-VOLTOOID: <id>] wanneer de criteria zijn bereikt):
-${sc.assignment.executeActions.map(a => `  - ${a.id}: ${a.label}
-     → criterium: ${a.completionCriterion}`).join('\n')}
+${sc.assignment.executeActions.map(a => {
+  const lid = getActionLocationId(a, 'execute');
+  const l = lid ? getLocation(lid) : null;
+  return `  - ${a.id}: ${a.label}${l ? `  [locatie: ${l.id} — ${l.label}]` : ''}
+     → criterium: ${a.completionCriterion}`;
+}).join('\n')}
 
 BELANGRIJKE INSTRUCTIE: zodra de deelnemer via radio rapporteert dat een uitvoerings-actie voltooid is volgens het criterium, stuur je in dezelfde beurt [ACTIE-VOLTOOID: <id>]. Pas als criterium WERKELIJK gehaald is.
+
+De uitvoering-acties worden in bovenstaande volgorde afgewerkt en kunnen op verschillende locaties spelen. Zodra jij een actie afvinkt, verplaatst de speler de deelnemer automatisch naar de locatie van de eerstvolgende openstaande actie. Vink dus pas af als de deelnemer daar werkelijk klaar is — een te vroege [ACTIE-VOLTOOID] haalt hem weg bij een plek waar hij nog bezig was. Kondig de verplaatsing kort aan in je antwoord ("je loopt door naar de pompvloer") zodat de overgang niet uit het niets komt.
 
 VEILIGSTELLEN — algemeen advies (voor referentie):
 ${sc.assignment.secureAdvice}
@@ -6714,7 +6722,7 @@ LOCATIES
 ═══════════════════════════════════════════════════════════
 ${locationsList}
 
-De deelnemer kan tussen locaties wisselen. Je krijgt elke beurt de huidige locatie in het [STATUS]-blok. Reageer context-bewust: beschrijf niet wat elders gebeurt. Mag actief naar een andere locatie sturen.
+Je krijgt elke beurt de huidige locatie in het [STATUS]-blok. Reageer context-bewust: beschrijf uitsluitend wat op DIE locatie waarneembaar is, nooit wat elders gebeurt. De locatie wordt door de speler bepaald — bij een fasewissel, en binnen de uitvoeringsfase door de actie die aan de beurt is. Je kunt de deelnemer dus niet zelf verplaatsen; sturen doe je door de bijbehorende actie af te vinken.
 ${signalsSection}
 
 ═══════════════════════════════════════════════════════════
@@ -8170,6 +8178,68 @@ function getPhaseLocationId(phase) {
   return withLoc ? withLoc.locationId : null;
 }
 
+// ── v35: locatie binnen een fase ────────────────────────────────────────────
+// Tot v34 gold één locatie per fase: setPhase zette currentLocationId en binnen
+// de fase veranderde die niet meer. Een controleronde langs meerdere plekken
+// paste daar niet in — de deelnemer bleef op de eerste locatie staan en de
+// signalen van de overige locaties werden weggefilterd. Vanaf v35 volgt de
+// locatie de actie die "aan de beurt" is.
+
+// Locatie van één actie. Voorkeur: een expliciete locationId op de actie zelf.
+// Ontbreekt die, dan valt hij terug op de SOP-stap van dezelfde fase op dezelfde
+// positie in de reeks — zo blijven bestaande scenario's zonder locationId werken.
+function getActionLocationId(action, phase) {
+  if (!action) return null;
+  const sc = getScenario();
+  if (action.locationId && getLocation(action.locationId)) return action.locationId;
+
+  const a = sc.assignment || {};
+  const actions = phase === 'prep' ? (a.prepActions || []) : (a.executeActions || []);
+  const idx = actions.findIndex(act => act.id === action.id);
+  if (idx < 0) return null;
+
+  const steps = (sc.sop?.steps || [])
+    .filter(s => s.phase === phase)
+    .sort((x, y) => (x.order || 0) - (y.order || 0));
+  const step = steps[idx];
+  return (step && step.locationId && getLocation(step.locationId)) ? step.locationId : null;
+}
+
+// Locatie die hoort bij de eerstvolgende openstaande actie van de huidige fase.
+// null = geen uitspraak (incident-scenario, andere fase, alles afgevinkt, of
+// geen herleidbare locatie) → de deelnemer blijft staan waar hij is.
+function resolveCurrentActionLocationId() {
+  const sc = getScenario();
+  if (sc.scenarioType === 'incident') return null;
+  const phase = STATE.currentPhase;
+  if (phase !== 'prep' && phase !== 'execute') return null;
+
+  const a = sc.assignment || {};
+  const actions = phase === 'prep' ? (a.prepActions || []) : (a.executeActions || []);
+  const next = actions.find(act => !STATE.assignmentChecked[act.id]);
+  if (!next) return null;
+  return getActionLocationId(next, phase);
+}
+
+// Verplaats de deelnemer naar de locatie van de actie die nu aan de beurt is.
+// Blijft de locatie gelijk, dan gebeurt er niets — dat voorkomt een overbodige
+// herlaad van de Storyline-slide en een misleidende regel in het logboek.
+function syncLocationToCurrentAction() {
+  const locId = resolveCurrentActionLocationId();
+  if (!locId || locId === STATE.currentLocationId) return;
+
+  STATE.currentLocationId = locId;
+  // Waarneming van de vorige locatie mag niet blijven plakken; leegmaken zorgt
+  // dat renderEnvironment terugvalt op de phaseDescriptions van de nieuwe plek.
+  STATE.envText = '';
+
+  renderTopBar();
+  renderLocationDropdown();
+  renderEnvironment();
+  tryLoadStorylineSlide();
+  addSystemMessage(t('log.location', { name: getLocation(locId).label }));
+}
+
 function setPhase(newPhase) {
   if (newPhase === STATE.currentPhase) return;
   STATE.currentPhase = newPhase;
@@ -8183,7 +8253,10 @@ function setPhase(newPhase) {
   // Locatie volgt de fase: verplaats de deelnemer naar de locatie die
   // hoort bij de SOP-stappen van deze fase. Heeft de fase geen stap met
   // een locationId, dan blijft de deelnemer waar hij is.
-  const phaseLocId = getPhaseLocationId(newPhase);
+  // v35: de actie die aan de beurt is heeft voorrang, zodat een fase die over
+  // meerdere locaties loopt op de juiste plek begint in plaats van altijd op de
+  // eerste SOP-stap van die fase.
+  const phaseLocId = resolveCurrentActionLocationId() || getPhaseLocationId(newPhase);
   if (phaseLocId && phaseLocId !== STATE.currentLocationId && getLocation(phaseLocId)) {
     STATE.currentLocationId = phaseLocId;
   }
@@ -8235,6 +8308,12 @@ function markActionDone(actionId) {
   renderLeftPanel();
   renderEnvironment();  // stap-gebonden signalen kunnen nu zichtbaar/onzichtbaar worden
   addSystemMessage(t('log.actionDone', { label: action.action || action.label }));
+
+  // v35: de volgende actie kan op een andere locatie spelen — verplaats de
+  // deelnemer dan mee. De AI ziet de nieuwe locatie de eerstvolgende beurt in
+  // het [STATUS]-blok, dus hier geen callClaude (we zitten midden in het
+  // verwerken van een AI-antwoord).
+  syncLocationToCurrentAction();
 }
 
 // Procedure-onvolkomenheid: AI markeert terechte detectie ('caught') of valse positieve ('false').
