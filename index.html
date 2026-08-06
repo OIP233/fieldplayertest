@@ -6363,7 +6363,14 @@ function buildSystemPrompt() {
   const phaseConfigText = Object.entries(sc.phaseConfig || {})
     // Zonder ingebouwde afwijking: deviation- en secure-fase niet aan de AI tonen.
     .filter(([k]) => devEnabled || isIncident || (k !== 'deviation' && k !== 'secure'))
-    .map(([k,v]) => `- ${k}: ${v.dir}`).join('\n');
+    // Staat er een locatie bij de fase, dan wordt de deelnemer bij de overgang
+    // naar die fase verplaatst — de AI moet dat weten om de fasewissel op het
+    // juiste moment te sturen (en niet te beschrijven wat elders gebeurt).
+    .map(([k,v]) => {
+      const loc = v.locationId ? getLocation(v.locationId) : null;
+      const locPart = loc ? ` [locatie bij deze fase: ${loc.id} ("${loc.label}")]` : '';
+      return `- ${k}: ${v.dir}${locPart}`;
+    }).join('\n');
 
   // ─── Company context (denormalized from controller's profile library) ───
   // De controller voegt bij export het gekoppelde bedrijfsprofiel toe als
@@ -6722,7 +6729,7 @@ LOCATIES
 ═══════════════════════════════════════════════════════════
 ${locationsList}
 
-Je krijgt elke beurt de huidige locatie in het [STATUS]-blok. Reageer context-bewust: beschrijf uitsluitend wat op DIE locatie waarneembaar is, nooit wat elders gebeurt. De locatie wordt door de speler bepaald — bij een fasewissel, en binnen de uitvoeringsfase door de actie die aan de beurt is. Je kunt de deelnemer dus niet zelf verplaatsen; sturen doe je door de bijbehorende actie af te vinken.
+Je krijgt elke beurt de huidige locatie in het [STATUS]-blok. Reageer context-bewust: beschrijf uitsluitend wat op DIE locatie waarneembaar is, nooit wat elders gebeurt. De locatie wordt door de speler bepaald — bij een fasewissel (staat er een locatie bij de fase hierboven, dan verplaatst de deelnemer daarheen zodra je die fase inschakelt), en binnen de uitvoeringsfase door de actie die aan de beurt is. Je verplaatst de deelnemer dus nooit met een eigen mededeling: sturen doe je door de bijbehorende actie af te vinken, of — als bij de verplaatsing een andere fase hoort — door de bijbehorende [FASE: ...] te sturen. De locatie volgt dan vanzelf.
 ${signalsSection}
 
 ═══════════════════════════════════════════════════════════
@@ -8171,6 +8178,16 @@ function getPhaseLocationId(phase) {
     return sc.assignment.secureLocationId;
   }
 
+  // v35b: expliciete locatie per fase in phaseConfig. Voor incident-scenario's
+  // is dit de ENIGE manier om de deelnemer te verplaatsen — die hebben geen
+  // SOP-stappen waaruit een locatie afgeleid kan worden, waardoor een incident
+  // met meerdere locaties tot nu toe op de startlocatie bleef hangen (en de
+  // signalen van de andere locaties werden weggefilterd). Voor procedural gaat
+  // een ingevulde waarde vóór de afleiding uit de SOP-stappen: expliciet wint
+  // van afgeleid. Leeg of onbekende id = geen uitspraak → deelnemer blijft staan.
+  const pcLocId = sc.phaseConfig?.[phase]?.locationId;
+  if (pcLocId && getLocation(pcLocId)) return pcLocId;
+
   // Fallback voor secure: SOP-stappen in deze fase (achterwaarts compatibel
   // met scenarios die secure-stappen met locatie definiëren maar geen
   // expliciet secureLocationId hebben).
@@ -8262,8 +8279,10 @@ function setPhase(newPhase) {
   // meerdere locaties loopt op de juiste plek begint in plaats van altijd op de
   // eerste SOP-stap van die fase.
   const phaseLocId = resolveCurrentActionLocationId() || getPhaseLocationId(newPhase);
+  let locationChanged = false;
   if (phaseLocId && phaseLocId !== STATE.currentLocationId && getLocation(phaseLocId)) {
     STATE.currentLocationId = phaseLocId;
+    locationChanged = true;
   }
 
   // Omgevingstekst resetten zodat de phaseDescriptions-tekst van de
@@ -8279,6 +8298,11 @@ function setPhase(newPhase) {
   applyAmbientForCurrentPhase();
   applyUrgencyTheme();
   addSystemMessage(t('log.phase', { name: getPhaseName(newPhase) }));
+  // Een fasewissel die de deelnemer ook verplaatst moet zichtbaar zijn in het
+  // logboek — anders verandert alleen de slide en is niet duidelijk waarom.
+  if (locationChanged) {
+    addSystemMessage(t('log.location', { name: getLocation(STATE.currentLocationId).label }));
+  }
 
   // On-site LMRA gate: bij het bereiken van de uitvoeringsfase (= aankomst
   // op de werkplek) eenmalig de reflectie-modal tonen vóór de eerste handeling.
