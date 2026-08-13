@@ -2804,6 +2804,12 @@ html body {
       <div class="tab-content" id="tab-secondary">
         <!-- Filled by renderSOP() or renderProcedure() -->
       </div>
+      <div class="tab-content" id="tab-rollen" data-tab="rollen">
+        <!-- Filled by renderRollen() — alleen zichtbaar als roles[].publicInfo bestaat -->
+      </div>
+      <div class="tab-content" id="tab-documenten" data-tab="documenten">
+        <!-- Filled by renderDocumenten() — alleen zichtbaar als documents[] bestaat -->
+      </div>
     </aside>
 
     <!-- MIDDLE PANEL -->
@@ -3741,7 +3747,7 @@ const I18N = {
     'end.new': '↺ Nieuw scenario',
     'end.back': 'Terug naar debrief',
     // dynamic render labels (gewired in v34)
-    'tab.opdracht': 'Opdracht', 'tab.sop': 'SOP', 'tab.situatie': 'Situatie', 'tab.procedure': 'Procedure',
+    'tab.opdracht': 'Opdracht', 'tab.sop': 'SOP', 'tab.rollen': 'Rollen', 'tab.documenten': 'Documenten', 'roles.none': 'Geen rolinformatie beschikbaar.', 'docs.none': 'Geen documenten beschikbaar.', 'docs.back': '← terug naar de lijst', 'tab.situatie': 'Situatie', 'tab.procedure': 'Procedure',
     'sop.sourceHeader': 'Bron-SOP (referentietekst)',
     'opd.task': 'Taak', 'opd.ppe': 'Vereiste PBM',
     'sit.situation': 'Situatie', 'sec.attention': 'Aandachtspunten',
@@ -3850,7 +3856,7 @@ const I18N = {
     'end.sub': 'The debrief is complete and the reports are available.<br>Start a new scenario or go back to the debrief.',
     'end.new': '↺ New scenario',
     'end.back': 'Back to debrief',
-    'tab.opdracht': 'Assignment', 'tab.sop': 'SOP', 'tab.situatie': 'Situation', 'tab.procedure': 'Procedure',
+    'tab.opdracht': 'Assignment', 'tab.sop': 'SOP', 'tab.rollen': 'Roles', 'tab.documenten': 'Documents', 'roles.none': 'No role information available.', 'docs.none': 'No documents available.', 'docs.back': '← back to list', 'tab.situatie': 'Situation', 'tab.procedure': 'Procedure',
     'sop.sourceHeader': 'Source SOP (reference text)',
     'opd.task': 'Task', 'opd.ppe': 'Required PPE',
     'sit.situation': 'Situation', 'sec.attention': 'Points of attention',
@@ -7073,6 +7079,8 @@ function renderLeftPanel() {
     renderOpdracht();
     renderSOP();
   }
+  renderRollen();
+  renderDocumenten();
 }
 
 // INCIDENT — Situatie-tab
@@ -8000,6 +8008,73 @@ function renderTabs() {
     $('tab-secondary').dataset.tab = 'sop';
     $('tab-secondary').style.display = '';
   }
+  renderExtraTabs();
+}
+
+/* ───── Universele tabbladen: Rollen en Documenten ─────
+   Verschijnen alleen als het scenario er data voor heeft, net zoals het
+   Procedure-tabblad. Scenario's zonder `publicInfo` of `documents` zien er
+   precies zo uit als voorheen. */
+function hasRollen() {
+  return (getScenario().roles || []).some(r => (r.publicInfo || '').trim());
+}
+function hasDocumenten() {
+  return (getScenario().documents || []).some(d => (d.inhoud || d.body || '').trim());
+}
+
+function renderExtraTabs() {
+  const tabs = $('left-tabs');
+  if (hasRollen()) {
+    tabs.insertAdjacentHTML('beforeend',
+      `<div class="tab" data-tab="rollen" onclick="switchTab('rollen')">${t('tab.rollen')}</div>`);
+  }
+  if (hasDocumenten()) {
+    tabs.insertAdjacentHTML('beforeend',
+      `<div class="tab" data-tab="documenten" onclick="switchTab('documenten')">${t('tab.documenten')}</div>`);
+  }
+  const r = $('tab-rollen'), d = $('tab-documenten');
+  if (r) r.style.display = hasRollen() ? '' : 'none';
+  if (d) d.style.display = hasDocumenten() ? '' : 'none';
+}
+
+function renderRollen() {
+  const el = $('tab-rollen');
+  if (!el) return;
+  const rollen = (getScenario().roles || []).filter(r => (r.publicInfo || '').trim());
+  if (!rollen.length) { el.innerHTML = `<div class="proc-guideline">${t('roles.none')}</div>`; return; }
+  el.innerHTML = rollen.map(r => `
+    <div class="sop-header" style="margin-bottom:4px">
+      <div class="title">${esc(r.name || '')}</div>
+      ${r.functie ? `<div class="ref">${esc(r.functie)}</div>` : ''}
+    </div>
+    <div style="font-size:11px;color:var(--text-dim);margin-bottom:14px">${esc(r.publicInfo)}</div>
+  `).join('');
+}
+
+/* Documenten: lijst, en bij klikken de volledige tekst in hetzelfde vak. */
+function renderDocumenten(openId) {
+  const el = $('tab-documenten');
+  if (!el) return;
+  const docs = (getScenario().documents || []).filter(d => (d.inhoud || d.body || '').trim());
+  if (!docs.length) { el.innerHTML = `<div class="proc-guideline">${t('docs.none')}</div>`; return; }
+
+  if (openId) {
+    const d = docs.find(x => x.id === openId);
+    if (d) {
+      el.innerHTML = `
+        <div class="sop-header">
+          <div class="title">${esc(d.titel || d.title || '')}</div>
+          ${d.soort ? `<div class="ref">${esc(d.soort)}</div>` : ''}
+        </div>
+        <pre style="white-space:pre-wrap;font-family:var(--mono,monospace);font-size:11px;line-height:1.5;color:var(--text);margin:0 0 12px">${esc(d.inhoud || d.body)}</pre>
+        <div class="proc-guideline" style="cursor:pointer" onclick="renderDocumenten()">${t('docs.back')}</div>`;
+      return;
+    }
+  }
+  el.innerHTML = docs.map(d => `
+    <div class="proc-guideline" style="cursor:pointer" onclick="renderDocumenten('${esc(d.id)}')">
+      <strong>${esc(d.titel || d.title || '')}</strong>${d.soort ? ` · ${esc(d.soort)}` : ''}
+    </div>`).join('');
 }
 
 function toggleLocationDropdown(e) {
