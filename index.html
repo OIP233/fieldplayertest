@@ -1476,6 +1476,233 @@ input, textarea {
 }
 #environment-text.has-more #env-more { display: block; }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   INDELING - drie standen voor de middenkolom (v37)
+
+   Klassiek   : ongewijzigd. Beeld, waarneemblok, zintuigen en invoer onder
+                elkaar. #hud-observe is dan `display:contents`, dus de wrapper
+                bestaat niet als doos en de stapeling blijft exact gelijk.
+   Beeld groot: het beeld krijgt alle resterende hoogte (grid-rij 1fr) en het
+                waarneemblok + zintuigpaneel liggen als halfdoorzichtige HUD
+                over de onderkant van het beeld. De drie panelen blijven staan.
+   Immersief  : het beeld loopt over de volle breedte door; de werkopdracht
+                wordt een uitschuiflade, de chat een halfdoorzichtige rail over
+                het beeld en de invoerbalk een zwevende kaart.
+
+   Waarom: in de klassieke stand is #storyline-wrap het enige blok met
+   flex-shrink:1. Alles eronder (waarneemblok, zintuigen, invoerbalk) eist
+   samen ~460-510px op en geeft niets terug, waardoor het beeld op krappe
+   schermen tot zijn min-height inzakt en - erger nog - horizontaal wegvalt
+   in zwarte balken. In de twee andere standen kost het waarneemblok geen
+   verticale ruimte meer.
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root {
+  --hud-bg:        rgba(15, 19, 28, 0.80);
+  --hud-bg-strong: rgba(15, 19, 28, 0.93);
+  --hud-border:    rgba(104, 144, 184, 0.42);
+  --hud-blur:      blur(11px) saturate(1.15);
+}
+
+/* Positioneringscontext voor de overlays; zonder effect in de klassieke stand. */
+.panels       { position: relative; }
+#panel-middle { position: relative; }
+
+/* Keuzeknoppen in de topbalk. */
+.layout-switch {
+  display: flex; gap: 1px; background: var(--border);
+  border-radius: 4px; overflow: hidden; flex-shrink: 0;
+}
+.layout-switch button {
+  background: var(--bg-deep); border: 0; color: var(--text-muted);
+  font-size: 13px; line-height: 1; width: 30px; height: 28px; padding: 0;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: color .15s, background .15s;
+}
+.layout-switch button:hover { color: var(--text); background: var(--panel-sub); }
+.layout-switch button.on    { color: var(--cyan); background: var(--cyan-bg); }
+
+/* Knop die de werkopdracht-lade opent (alleen in de immersieve stand). */
+#drawer-btn {
+  display: none; position: absolute; z-index: 41; top: 10px; left: 10px;
+  background: var(--hud-bg-strong); border: 1px solid var(--hud-border);
+  color: var(--text-dim); font-family: var(--mono); font-size: 11px;
+  padding: 6px 12px; border-radius: 5px; cursor: pointer;
+  backdrop-filter: var(--hud-blur); -webkit-backdrop-filter: var(--hud-blur);
+  transition: left .28s cubic-bezier(.4, 0, .2, 1), border-color .15s, color .15s;
+}
+#drawer-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+
+/* Inklapknop in de kop van het waarneemblok (alleen in de HUD-standen). */
+#hud-collapse {
+  display: none; margin-left: auto; width: 22px; height: 19px; padding: 0;
+  background: transparent; border: 1px solid var(--hud-border); border-radius: 4px;
+  color: var(--text-dim); font-size: 11px; line-height: 1; cursor: pointer;
+  align-items: center; justify-content: center; flex-shrink: 0;
+}
+#hud-collapse:hover { border-color: var(--cyan); color: var(--cyan); }
+
+/* ── Klassiek: de wrapper bestaat niet als doos ── */
+#hud-observe { display: contents; }
+
+/* ── Gedeeld door 'beeld groot' en 'immersief' ── */
+#screen-scenario[data-layout="hud"]       #panel-middle,
+#screen-scenario[data-layout="immersive"] #panel-middle {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+#screen-scenario[data-layout="hud"]       #storyline-wrap,
+#screen-scenario[data-layout="immersive"] #storyline-wrap {
+  grid-column: 1; grid-row: 1;
+  min-height: 0; max-height: none; aspect-ratio: auto; border-bottom: 0;
+}
+/* In de immersieve stand loopt het beeld ook achter de zwevende invoerbalk door. */
+#screen-scenario[data-layout="immersive"] #storyline-wrap { grid-row: 1 / 3; }
+
+#screen-scenario[data-layout="hud"]       #hud-observe,
+#screen-scenario[data-layout="immersive"] #hud-observe {
+  grid-column: 1; grid-row: 1; z-index: 20;
+  display: flex; flex-direction: column;
+  align-self: end; justify-self: stretch;
+  margin: 12px; max-height: calc(100% - 24px); overflow: hidden;
+  border: 1px solid var(--hud-border); border-radius: 8px;
+  background: var(--hud-bg);
+  backdrop-filter: var(--hud-blur); -webkit-backdrop-filter: var(--hud-blur);
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.55);
+  transition: opacity .35s ease;
+}
+/* Rust-stand: zodra alles bevestigd is zakt de HUD terug zodat het beeld
+   vrijkomt. Een ongelezen waarneming of de muis brengt hem meteen terug. */
+#screen-scenario[data-layout="hud"]       #hud-observe:not(:hover):not(:focus-within),
+#screen-scenario[data-layout="immersive"] #hud-observe:not(:hover):not(:focus-within) { opacity: .84; }
+#hud-observe:has(.sense-row.unread),
+#hud-observe.env-alert { opacity: 1 !important; }
+
+#screen-scenario[data-layout="hud"]       #hud-observe #environment-text,
+#screen-scenario[data-layout="immersive"] #hud-observe #environment-text {
+  background: transparent; border-bottom: 1px solid var(--hud-border);
+  padding: 8px 13px 9px; max-height: clamp(74px, 12vh, 124px);
+}
+#screen-scenario[data-layout="hud"]       #hud-observe #sense-list,
+#screen-scenario[data-layout="immersive"] #hud-observe #sense-list {
+  background: var(--hud-border); border-top: 0;
+}
+#screen-scenario[data-layout="hud"]       #hud-observe .sense-row,
+#screen-scenario[data-layout="immersive"] #hud-observe .sense-row { background: rgba(46, 58, 80, 0.74); }
+#screen-scenario[data-layout="hud"]       #hud-observe .sense-row:hover:not(:disabled),
+#screen-scenario[data-layout="immersive"] #hud-observe .sense-row:hover:not(:disabled) { background: rgba(46, 58, 80, 0.95); }
+#screen-scenario[data-layout="hud"]       #hud-observe .sense-row.unread,
+#screen-scenario[data-layout="immersive"] #hud-observe .sense-row.unread { background: rgba(8, 44, 58, 0.92); }
+#screen-scenario[data-layout="hud"]       #hud-observe .observation-buttons,
+#screen-scenario[data-layout="immersive"] #hud-observe .observation-buttons {
+  margin-top: 0 !important; padding: 7px 13px;
+  background: rgba(36, 48, 68, 0.55); border-top: 1px solid var(--hud-border);
+}
+/* De scroll-hint hoort onderin het waarneemblok, niet onder de hele HUD. */
+#screen-scenario[data-layout="hud"]       #hud-observe #env-more,
+#screen-scenario[data-layout="immersive"] #hud-observe #env-more {
+  margin: 4px -13px -9px; padding: 2px 13px 3px;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(15,19,28,.92) 55%);
+}
+#screen-scenario[data-layout="hud"]       #hud-collapse,
+#screen-scenario[data-layout="immersive"] #hud-collapse { display: inline-flex; }
+/* De teller mag de inklapknop niet naar het midden duwen: die hoort rechts. */
+#screen-scenario[data-layout="hud"]       #env-change-badge,
+#screen-scenario[data-layout="immersive"] #env-change-badge { margin-left: 6px; }
+
+/* Ingeklapt: alleen de vier zintuigen als chips, het beeld blijft vrij. */
+#hud-observe.collapsed .env-note,
+#hud-observe.collapsed #environment-content,
+#hud-observe.collapsed #env-more,
+#hud-observe.collapsed .observation-buttons { display: none; }
+#hud-observe.collapsed #environment-text {
+  border-bottom: 0 !important; padding-bottom: 2px !important; max-height: none !important;
+}
+#hud-observe.collapsed #sense-list {
+  flex-direction: row; flex-wrap: wrap; gap: 6px;
+  background: transparent !important; padding: 4px 11px 9px;
+  max-height: none; overflow: visible;
+}
+#hud-observe.collapsed .sense-row {
+  display: inline-flex; align-items: center; gap: 5px; width: auto;
+  padding: 3px 9px; border-radius: 12px;
+  border: 1px solid var(--hud-border); border-left-width: 1px;
+  background: rgba(46, 58, 80, 0.82) !important;
+}
+#hud-observe.collapsed .sense-row .sr-text { display: none; }
+#hud-observe.collapsed .sense-row.unread { border-color: var(--cyan); }
+#hud-observe.collapsed .sense-row.stale  { border-color: var(--amber); }
+
+/* ── Alleen 'immersief' ── */
+#screen-scenario[data-layout="immersive"] .panels { grid-template-columns: minmax(0, 1fr); }
+
+#screen-scenario[data-layout="immersive"] #panel-left {
+  position: absolute; z-index: 40; top: 0; bottom: 0; left: 0; width: 320px;
+  background: var(--hud-bg-strong);
+  backdrop-filter: var(--hud-blur); -webkit-backdrop-filter: var(--hud-blur);
+  border-right: 1px solid var(--hud-border);
+  transform: translateX(-100%);
+  transition: transform .28s cubic-bezier(.4, 0, .2, 1);
+  box-shadow: 14px 0 40px rgba(0, 0, 0, 0.5);
+}
+#screen-scenario[data-layout="immersive"][data-drawer="1"] #panel-left { transform: translateX(0); }
+#screen-scenario[data-layout="immersive"] #drawer-btn { display: block; }
+#screen-scenario[data-layout="immersive"][data-drawer="1"] #drawer-btn { left: 330px; }
+/* De vergrootknop wijkt uit voor de ladeknop. */
+#screen-scenario[data-layout="immersive"] #expand-btn { top: 48px; }
+
+#screen-scenario[data-layout="immersive"] #panel-right {
+  position: absolute; z-index: 30; top: 0; bottom: 0; right: 0; width: 352px;
+  background: transparent; border-left: 0; pointer-events: none;
+}
+/* Scrim: houdt de chat leesbaar over een lichte slide zonder het beeld dicht te plakken. */
+#screen-scenario[data-layout="immersive"] #panel-right::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(270deg, rgba(15,19,28,0.92) 0%, rgba(15,19,28,0.74) 58%, rgba(15,19,28,0) 100%);
+}
+#screen-scenario[data-layout="immersive"] #panel-right > * { position: relative; pointer-events: auto; }
+#screen-scenario[data-layout="immersive"] .channel-selector {
+  background: transparent; border-bottom: 0; gap: 6px; padding: 10px 12px 4px;
+}
+#screen-scenario[data-layout="immersive"] .channel-btn {
+  background: var(--hud-bg); border: 1px solid var(--hud-border); border-radius: 5px;
+  backdrop-filter: var(--hud-blur); -webkit-backdrop-filter: var(--hud-blur);
+}
+#screen-scenario[data-layout="immersive"] .channel-btn.active {
+  background: rgba(8, 44, 58, 0.92); color: var(--cyan); border-color: var(--cyan);
+}
+#screen-scenario[data-layout="immersive"] #feed { padding: 6px 12px 14px; }
+#screen-scenario[data-layout="immersive"] .msg {
+  background: var(--hud-bg); border: 1px solid var(--hud-border); max-width: 100%;
+  backdrop-filter: var(--hud-blur); -webkit-backdrop-filter: var(--hud-blur);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+}
+#screen-scenario[data-layout="immersive"] .msg.you        { background: rgba(18, 46, 30, 0.88); border-color: #1f5f3a; }
+#screen-scenario[data-layout="immersive"] .msg.instructor { background: rgba(46, 30, 78, 0.88); border-left: 3px solid var(--purple); }
+#screen-scenario[data-layout="immersive"] .msg.system     { background: rgba(15, 19, 28, 0.72); border: 1px dashed var(--border); }
+
+#screen-scenario[data-layout="immersive"] #hud-observe {
+  justify-self: start; width: min(420px, 32%); margin: 12px 0 12px 12px;
+}
+/* Ingeklapt is de HUD niet meer dan een chipsbalk: laat hem meekrimpen. */
+#screen-scenario[data-layout="immersive"] #hud-observe.collapsed { width: auto; max-width: 62%; }
+#screen-scenario[data-layout="immersive"] #input-bar {
+  grid-column: 1; grid-row: 2; z-index: 35;
+  margin: 0 364px 12px 12px;
+  background: var(--hud-bg-strong);
+  backdrop-filter: var(--hud-blur); -webkit-backdrop-filter: var(--hud-blur);
+  border: 1px solid var(--hud-border); border-radius: 9px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55);
+}
+#screen-scenario[data-layout="immersive"] #input-text { background: rgba(36, 48, 68, 0.85); }
+
+/* Krappe schermen: chatrail en HUD smaller, anders blijft er van het beeld niets over. */
+@media (max-width: 1180px) {
+  #screen-scenario[data-layout="immersive"] #panel-right { width: 300px; }
+  #screen-scenario[data-layout="immersive"] #input-bar   { margin-right: 312px; }
+  #screen-scenario[data-layout="immersive"] #hud-observe { width: min(320px, 42%); }
+}
+
 #input-bar {
   flex: 0 0 auto;
   padding: 8px 14px 10px;   /* v18: was 10/14, iets compacter */
@@ -2928,6 +3155,11 @@ html body {
       <div class="location-dropdown" id="location-dropdown"></div>
     </div>
     <div class="spacer"></div>
+    <div class="layout-switch" id="layout-switch" role="group">
+      <button type="button" data-layout-set="classic" onclick="applyLayout('classic')" title="Klassiek — beeld, waarneemblok en chat onder elkaar" data-i18n-title="layout.classic">▤</button>
+      <button type="button" data-layout-set="hud" onclick="applyLayout('hud')" title="Beeld groot — waarneempaneel ligt over het beeld" data-i18n-title="layout.hud">▣</button>
+      <button type="button" data-layout-set="immersive" onclick="applyLayout('immersive')" title="Immersief — beeld schermvullend, chat over het beeld" data-i18n-title="layout.immersive">⛶</button>
+    </div>
     <button id="pause-btn" class="pause-btn" type="button" onclick="togglePause()" title="Pauzeer scenario" data-i18n-title="pause.title" disabled>⏸ Pauze</button>
     <button id="audio-toggle" class="audio-btn" title="Geluid aan (klik om uit te schakelen)" data-i18n-title="audio.titleOn" onclick="audioToggle()">🔊</button>
     <div class="clock" id="clock">00:00</div>
@@ -2951,6 +3183,9 @@ html body {
   </div>
 
   <div class="panels">
+
+    <!-- Alleen zichtbaar in de immersieve stand: opent de werkopdracht als lade. -->
+    <button id="drawer-btn" type="button" onclick="toggleOpdrachtDrawer()" title="Werkopdracht tonen of verbergen" data-i18n-title="layout.drawerTitle">📋&nbsp;<span data-i18n="layout.drawer">Opdracht</span></button>
 
     <!-- LEFT PANEL -->
     <aside class="panel" id="panel-left">
@@ -2984,8 +3219,11 @@ html body {
         </div>
       </div>
 
+      <!-- v37: wrapper voor de HUD-standen. In de klassieke stand is dit
+           element `display:contents`, dus de stapeling blijft exact gelijk. -->
+      <div id="hud-observe">
       <div id="environment-text">
-        <span class="env-label"><span data-i18n="env.label">Wat alleen jij waarneemt</span><span class="live-dot" title="Dynamische waarneming — wijzigt mee met de situatie" data-i18n-title="env.liveTitle"></span><button type="button" id="env-change-badge" onclick="ackObservations()" title="Er is iets veranderd — klik om te bevestigen dat je het gezien hebt" data-i18n-title="env.badgeTitle"><span id="env-change-count">1</span> <span data-i18n="env.badgeNew">nieuw</span></button></span>
+        <span class="env-label"><span data-i18n="env.label">Wat alleen jij waarneemt</span><span class="live-dot" title="Dynamische waarneming — wijzigt mee met de situatie" data-i18n-title="env.liveTitle"></span><button type="button" id="env-change-badge" onclick="ackObservations()" title="Er is iets veranderd — klik om te bevestigen dat je het gezien hebt" data-i18n-title="env.badgeTitle"><span id="env-change-count">1</span> <span data-i18n="env.badgeNew">nieuw</span></button><button type="button" id="hud-collapse" onclick="toggleHud()" title="Waarneempaneel in- of uitklappen" data-i18n-title="hud.collapseTitle">▾</button></span>
         <span class="env-note" data-i18n="env.note">De controlekamer ziet dit niet — meld wat van belang is via de radio.</span>
         <span id="environment-content">—</span>
         <span id="env-more" data-i18n="env.more">▾ scroll voor meer</span>
@@ -3026,6 +3264,7 @@ html body {
       </div>
       <div class="observation-buttons" style="margin-top:6px">
         <button class="obs-btn" onclick="raiseProcedureConcern()" data-i18n="concern.btn" data-i18n-title="concern.title" title="Stel een stap in de procedure formeel ter discussie">⚠ Procedure-bezwaar</button>
+      </div>
       </div>
 
       <div id="input-bar">
@@ -3976,6 +4215,12 @@ const I18N = {
     'log.actionDone': 'Actie voltooid: {label}',
     'log.impCaught': 'Procedure-onvolkomenheid opgemerkt: {label}',
     'log.impFalse': 'Correcte stap onterecht als fout aangemerkt: {label}',
+    'layout.classic': 'Klassiek — beeld, waarneemblok en chat onder elkaar',
+    'layout.hud': 'Beeld groot — waarneempaneel ligt over het beeld',
+    'layout.immersive': 'Immersief — beeld schermvullend, chat over het beeld',
+    'layout.drawer': 'Opdracht',
+    'layout.drawerTitle': 'Werkopdracht tonen of verbergen',
+    'hud.collapseTitle': 'Waarneempaneel in- of uitklappen',
   },
   en: {
     'key.sub': 'No API key found in the scenario file. Enter an Anthropic API key manually to continue.',
@@ -4096,6 +4341,12 @@ const I18N = {
     'log.actionDone': 'Action completed: {label}',
     'log.impCaught': 'Procedure imperfection noticed: {label}',
     'log.impFalse': 'Correct step wrongly flagged as faulty: {label}',
+    'layout.classic': 'Classic — view, observation block and chat stacked',
+    'layout.hud': 'Large view — observation panel overlays the view',
+    'layout.immersive': 'Immersive — full-width view, chat overlays the view',
+    'layout.drawer': 'Assignment',
+    'layout.drawerTitle': 'Show or hide the work assignment',
+    'hud.collapseTitle': 'Collapse or expand the observation panel',
   },
 };
 
@@ -6714,7 +6965,9 @@ ${lines.join('\n')}
 ═══════════════════════════════════════════════════════════
 OMGEVINGSSIGNALEN — statische waarnemingen per locatie+fase
 ═══════════════════════════════════════════════════════════
-De deelnemer ziet deze signalen automatisch in de Situatie-tab zodra hij op de juiste locatie/fase is. Hij ziet ze ZONDER significantie-labels — hij moet zelf inschatten wat belangrijk is.
+De deelnemer ziet deze signalen automatisch in zijn waarneempaneel ("Wat alleen jij waarneemt") zodra hij op de juiste locatie/fase is. Hij ziet ze ZONDER significantie-labels — hij moet zelf inschatten wat belangrijk is.
+
+BELANGRIJK: omdat de deelnemer ze al ziet, mag je ze NIET nog eens in een bericht beschrijven. Herhaal een signaal dus nooit in een rolbericht en ook niet als verteltekst; dat maakt de communicatie onlogisch (de radiorollen kunnen het niet waarnemen) en zet hetzelfde signaal twee keer in beeld.
 
 ${sigBlocks}
 
@@ -7016,6 +7269,21 @@ Voorbeelden:
 [ROL: Karel] Ja hoor, ik ben hier ook — alles ziet er normaal uit.
 [ROL: Instructeur] Wacht — wat ben je nu van plan?
 
+GEEN VERTELTEKST — de harde scheiding tussen praten en waarnemen:
+Elke regel van je antwoord begint met [ROL: <naam>], met [WAARNEMING: <zintuig>], of met een ander systeemtoken. Verteltekst zonder tag bestaat niet in dit protocol.
+- Alles wat de deelnemer ZIET, HOORT, RUIKT of VOELT gaat UITSLUITEND via [WAARNEMING: …]. Het verschijnt dan in zijn waarneempaneel, waar hij het als nieuw gemarkeerd ziet.
+- Een radiorol beschrijft NOOIT de omgeving van de deelnemer. Hij zit elders en weet alleen wat de deelnemer heeft gemeld, wat zijn eigen instrumenten tonen, of wat hij op zijn eigen plek waarneemt.
+- Zet dus NOOIT een beschrijvende zin achter of onder een rolbericht. Zo'n zin hoort in een [WAARNEMING]-token.
+
+FOUT (de CRO meldt iets wat hij onmogelijk kan waarnemen, en het signaal staat dubbel in beeld):
+[ROL: CRO] Begrepen, ga je gang.
+Je hoort het sissen sterker worden en ruikt een zoetige lucht rond de pomp.
+
+GOED (de rol zegt alleen wat hij kan weten; de waarneming gaat naar het paneel):
+[ROL: CRO] Begrepen, ga je gang.
+[WAARNEMING: geluid] Het sissen bij de flens is duidelijk sterker dan zojuist.
+[WAARNEMING: geur] Een zoetige lucht die je in je keel voelt prikken.
+
 Beschikbare systeemtokens (op een aparte regel):
 [FASE: ${isIncident ? 'assess|act|report' : (devEnabled ? 'prep|execute|deviation|secure' : 'prep|execute')}]  — wissel actieve fase
 [WAARNEMING: zicht|geluid|geur|aanraking] beschrijvende tekst  — vul de regel van dít zintuig in het waarneempaneel
@@ -7059,6 +7327,7 @@ DYNAMIEK EN REALISME
 WAARNEMING IS LOKAAL — de radiorollen kijken NIET mee:
 - De radiorollen (CRO, collega, supervisor) zitten elders en kunnen NIET zien, horen of ruiken wat de deelnemer ter plaatse waarneemt. De omgevingssignalen in het "Wat alleen jij waarneemt"-blok zijn UITSLUITEND voor de deelnemer. De radio weet alleen wat de deelnemer EXPLICIET meldt.
 - Reageer dus NOOIT uit jezelf op een omgevingssignaal dat de deelnemer nog niet heeft gerapporteerd (geen "ik zie ook dat..."), en doe nooit alsof de CRO een waarneming al kent.
+- Beschrijf de omgeving ook nooit NAMENS de deelnemer in een bericht ("je ziet…", "je ruikt…", "het sissen wordt sterker"). Zulke zinnen horen in een [WAARNEMING]-token, niet in het radioverkeer. Als de deelnemer iets meldt, bevestigt de rol alleen de MELDING ("begrepen, sissend geluid bij de flens, over") — hij herhaalt de waarneming niet alsof hij hem zelf doet.
 - Als de deelnemer aanneemt dat de controlekamer meekijkt — bv. "zie je dat?", "jullie zien het lek toch", of handelt alsof de CRO de situatie al kent zonder het te melden — laat de aangesproken radiorol dat ÉÉN keer, kort en in-fictie corrigeren: maak duidelijk dat hij vanaf daar niets kan zien en vraag de deelnemer te beschrijven wat hij waarneemt (bv. "[ROL: CRO] Ik kan vanaf hier niets zien — beschrijf eens wat je daar precies waarneemt, over."). Geen college, geen herhaling, en verklap NOOIT het signaal of de juiste actie.
 
 ═══════════════════════════════════════════════════════════
@@ -7303,8 +7572,18 @@ async function parseAndApplyAIResponse(reply) {
     segments.push({ role: 'CRO', text: cleanReply.trim() });
   }
 
-  // Sequentieel: wacht op typewriter van vorige bericht voor volgende start
+  // v36: verteltekst hoort niet in het radioverkeer. Zinnen als "Je ruikt een
+  // zoetige lucht" die de AI aan een rolbericht vastplakt, laten de CRO iets
+  // zeggen wat hij vanaf zijn plek onmogelijk kan waarnemen. Die regels halen
+  // we uit het bericht en zetten we in het zintuigpaneel, waar ze thuishoren.
+  const spoken = [];
   for (const seg of segments) {
+    const rest = extractNarrationToSenses(seg.text);
+    if (rest) spoken.push({ role: seg.role, text: rest });
+  }
+
+  // Sequentieel: wacht op typewriter van vorige bericht voor volgende start
+  for (const seg of spoken) {
     await addFeedMessage(seg.role, seg.text);
   }
 
@@ -7313,7 +7592,7 @@ async function parseAndApplyAIResponse(reply) {
     // await't elke typewriter). Geef de deelnemer nog een leespauze die
     // meeschaalt met de lengte van het slotbericht, zodat de overgang naar
     // de debrief niet midden in het lezen valt.
-    const lastSeg = segments[segments.length - 1];
+    const lastSeg = spoken[spoken.length - 1];
     const lastLen = lastSeg ? (lastSeg.text || '').length : 0;
     const readPause = Math.min(6000, Math.max(2600, lastLen * 28));
     setTimeout(() => endScenario('completed'), readPause);
@@ -7827,6 +8106,49 @@ function observationCue() {
   try { playEffect('observe-cue'); } catch (e) { /* audio nog niet klaar — geen probleem */ }
 }
 
+/* ── Verteltekst uit radioberichten filteren ────────────────────────────────
+   De radiorollen zitten elders: ze kunnen niet zien, horen, ruiken of voelen
+   wat de deelnemer ter plaatse waarneemt. Toch plakt de AI regelmatig een
+   beschrijvende zin aan een rolbericht ("Je hoort het sissen sterker worden"),
+   waardoor de CRO iets meldt wat hij onmogelijk kan weten — en waardoor de
+   omgevingssignalen dubbel in beeld komen.
+
+   Deze filter haalt zulke regels uit het bericht en zet ze in de bijbehorende
+   zintuigregel. Bewust conservatief: alleen een HELE regel die in de tweede
+   persoon met een waarnemingswerkwoord begint. Een rol die in zijn eigen zin
+   "je ziet toch dat…" zegt, blijft dus gewoon staan.
+   ─────────────────────────────────────────────────────────────────────────── */
+const NARRATION_PATTERNS = [
+  { sense: 'zicht',     re: /^(?:je|jij|u)\s+(?:ziet|kijkt|neemt\s+waar|merkt\s+op|constateert)\b/i },
+  { sense: 'geluid',    re: /^(?:je|jij|u)\s+(?:hoort|luistert)\b/i },
+  { sense: 'geur',      re: /^(?:je|jij|u)\s+(?:ruikt)\b/i },
+  { sense: 'aanraking', re: /^(?:je|jij|u)\s+(?:voelt)\b/i },
+  { sense: 'zicht',     re: /^you\s+(?:see|notice|observe)\b/i },
+  { sense: 'geluid',    re: /^you\s+(?:hear|listen)\b/i },
+  { sense: 'geur',      re: /^you\s+(?:smell)\b/i },
+  { sense: 'aanraking', re: /^you\s+(?:feel)\b/i }
+];
+
+// Retourneert de tekst die WEL gesproken mag worden; verplaatste regels
+// belanden in het zintuigpaneel. Lege uitkomst = het hele bericht was
+// verteltekst en er wordt dus niets gezegd.
+function extractNarrationToSenses(text) {
+  if (!text) return '';
+  const keep = [];
+  String(text).split(/\n+/).forEach(rawLine => {
+    const line = rawLine.trim();
+    if (!line) return;
+    const hit = NARRATION_PATTERNS.find(p => p.re.test(line));
+    if (hit) {
+      console.log('[waarneming] verteltekst uit radiobericht gehaald →', hit.sense, ':', line);
+      updateEnvironment(line, hit.sense);
+    } else {
+      keep.push(line);
+    }
+  });
+  return keep.join('\n').trim();
+}
+
 // Koppelingen van het zintuigpaneel. De markup staat vóór dit script, dus de
 // elementen bestaan hier al.
 (function wireSensePanel() {
@@ -7950,6 +8272,62 @@ function swapStorylineFrame(url) {
   if (url) fresh.src = url;
   old.parentNode.replaceChild(fresh, old);
 }
+
+
+/* ───── Indeling: klassiek / beeld groot / immersief (v37) ─────
+   De stand staat als data-attribuut op #screen-scenario; alle verschillen
+   zitten in CSS. Hier alleen de schakelaar, de inklapstand van de HUD en de
+   werkopdracht-lade. De keuze wordt per browser onthouden.
+   ────────────────────────────────────────────────────────────── */
+const LAYOUT_MODES = ['classic', 'hud', 'immersive'];
+const LAYOUT_KEY = 'oip.field.layout';
+
+function applyLayout(mode) {
+  if (LAYOUT_MODES.indexOf(mode) === -1) mode = 'hud';
+  const scr = document.getElementById('screen-scenario');
+  if (!scr) return;
+  scr.dataset.layout = mode;
+  // De lade hoort alleen bij de immersieve stand; bij terugschakelen sluit hij.
+  if (mode !== 'immersive') scr.dataset.drawer = '0';
+  document.querySelectorAll('#layout-switch button').forEach(b => {
+    b.classList.toggle('on', b.getAttribute('data-layout-set') === mode);
+  });
+  try { localStorage.setItem(LAYOUT_KEY, mode); } catch (e) {}
+  // Coach-mark en scroll-hint hangen aan afmetingen die zojuist verschoven zijn.
+  setTimeout(() => {
+    try { positionEnvCoachmark(); } catch (e) {}
+    try { updateEnvMoreHint(); } catch (e) {}
+  }, 330);
+}
+
+function toggleHud() {
+  const hud = document.getElementById('hud-observe');
+  if (!hud) return;
+  const collapsed = hud.classList.toggle('collapsed');
+  const btn = document.getElementById('hud-collapse');
+  if (btn) btn.textContent = collapsed ? '\u25B8' : '\u25BE';
+  try { updateEnvMoreHint(); } catch (e) {}
+}
+
+function toggleOpdrachtDrawer() {
+  const scr = document.getElementById('screen-scenario');
+  if (!scr) return;
+  scr.dataset.drawer = scr.dataset.drawer === '1' ? '0' : '1';
+}
+
+(function initLayout() {
+  let saved = 'hud';   // standaard: het beeld zo groot mogelijk
+  try { saved = localStorage.getItem(LAYOUT_KEY) || 'hud'; } catch (e) {}
+  const start = () => applyLayout(saved);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
+  // Escape sluit eerst de werkopdracht-lade, daarna pas het vergrote beeld.
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    const scr = document.getElementById('screen-scenario');
+    if (scr && scr.dataset.drawer === '1') { scr.dataset.drawer = '0'; e.stopPropagation(); }
+  }, true);
+})();
 
 function expandStoryline() {
   const wrap = $('storyline-wrap');
