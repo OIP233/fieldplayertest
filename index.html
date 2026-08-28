@@ -1682,7 +1682,9 @@ input, textarea {
 #screen-scenario[data-layout="immersive"] .msg.system     { background: rgba(15, 19, 28, 0.72); border: 1px dashed var(--border); }
 
 #screen-scenario[data-layout="immersive"] #hud-observe {
-  justify-self: start; width: min(420px, 32%); margin: 12px 0 12px 12px;
+  /* v38: breed genoeg voor twee zintuigkaarten naast elkaar (2x250 + gap +
+     padding = 535px), anders stapelen ze vier hoog en wordt de rail te lang. */
+  justify-self: start; width: min(560px, 42%); margin: 12px 0 12px 12px;
 }
 /* Ingeklapt is de HUD niet meer dan een chipsbalk: laat hem meekrimpen. */
 #screen-scenario[data-layout="immersive"] #hud-observe.collapsed { width: auto; max-width: 62%; }
@@ -1696,11 +1698,140 @@ input, textarea {
 }
 #screen-scenario[data-layout="immersive"] #input-text { background: rgba(36, 48, 68, 0.85); }
 
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   v38 — beeld bovenaan uitlijnen + waarneempaneel herzien
+
+   1. Het beeld stond in 'beeld groot' midden in de stage, waardoor er boven
+      een even brede zwarte band lag als onder (gemeten: 125px elk) terwijl de
+      HUD de onderste 148px van het beeld al bedekte. Door het frame op de
+      beeldverhouding te zetten en bovenaan uit te lijnen, valt alle
+      restruimte onderaan — precies waar de HUD toch al ligt.
+   2. Het waarneempaneel was smal-denkend in een breed vak: vier volle-breedte
+      regels van 26px met één tekstregel elk, terwijl de omgevingstekst werd
+      afgekapt (122px inhoud in 107px). De zintuigen worden nu kaarten in een
+      meekrimpend raster, en de omgevingstekst krijgt de ruimte die vrijkomt.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Beeld bovenaan ── */
+#screen-scenario[data-layout="hud"]       #storyline-wrap,
+#screen-scenario[data-layout="immersive"] #storyline-wrap { container-type: size; }
+
+#screen-scenario[data-layout="hud"]       #storyline-frame,
+#screen-scenario[data-layout="immersive"] #storyline-frame {
+  /* Grootste vlak met de beeldverhouding dat in de stage past, bovenaan
+     geplaatst. 100cqh = hoogte van #storyline-wrap. Pas --slide-ar/-aspect
+     aan als de Storyline niet 16:9 is. */
+  width: min(100%, calc(100cqh * var(--slide-ar, 1.7778)));
+  height: auto;
+  aspect-ratio: var(--slide-aspect, 16 / 9);
+  margin: 0 auto auto;
+}
+/* Vergroot beeld blijft gewoon gecentreerd het scherm vullen. */
+#screen-scenario #storyline-wrap.expanded #storyline-frame {
+  width: 100%; height: 100%; aspect-ratio: auto; margin: 0;
+}
+
+/* ── 2. Waarneempaneel ── */
+/* De vaste toelichting staat al in de coach-mark bij de start; in de HUD
+   kost hij elke seconde een regel. Hij verhuist naar de title van de kop. */
+#screen-scenario[data-layout="hud"]       #hud-observe .env-note,
+#screen-scenario[data-layout="immersive"] #hud-observe .env-note { display: none; }
+
+/* Omgevingstekst: meer hoogte en iets groter, zodat hij niet meer afkapt. */
+#screen-scenario[data-layout="hud"]       #hud-observe #environment-text,
+#screen-scenario[data-layout="immersive"] #hud-observe #environment-text {
+  max-height: clamp(96px, 17vh, 200px);
+  padding: 9px 14px 11px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+#screen-scenario[data-layout="hud"]       #hud-observe .env-label,
+#screen-scenario[data-layout="immersive"] #hud-observe .env-label {
+  margin-bottom: 6px; cursor: help;
+}
+
+/* Zintuigen als kaarten in een meekrimpend raster: twee naast elkaar op een
+   normale middenkolom, vier op een breed immersief beeld. */
+#screen-scenario[data-layout="hud"]       #hud-observe #sense-list,
+#screen-scenario[data-layout="immersive"] #hud-observe #sense-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 7px;
+  background: transparent;
+  border-top: 1px solid var(--hud-border);
+  padding: 9px 14px 11px;
+  max-height: none;
+  overflow: visible;
+}
+#screen-scenario[data-layout="hud"]       #hud-observe .sense-row,
+#screen-scenario[data-layout="immersive"] #hud-observe .sense-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 3px 8px;
+  padding: 7px 10px 8px;
+  border: 1px solid var(--hud-border);
+  border-left: 3px solid transparent;
+  border-radius: 6px;
+  background: rgba(46, 58, 80, 0.60);
+}
+#screen-scenario[data-layout="hud"]       #hud-observe .sense-row .sr-name,
+#screen-scenario[data-layout="immersive"] #hud-observe .sense-row .sr-name {
+  grid-column: 1; grid-row: 1; padding-top: 0;
+}
+#screen-scenario[data-layout="hud"]       #hud-observe .sense-row .sr-tag,
+#screen-scenario[data-layout="immersive"] #hud-observe .sense-row .sr-tag {
+  grid-column: 2; grid-row: 1;
+}
+#screen-scenario[data-layout="hud"]       #hud-observe .sense-row .sr-text,
+#screen-scenario[data-layout="immersive"] #hud-observe .sense-row .sr-text {
+  grid-column: 1 / -1; grid-row: 2;
+  font-size: 12.5px; line-height: 1.45;
+  -webkit-line-clamp: 3;
+}
+/* 'Niet gedaan' staat al in de cursieve uitnodigingstekst zelf — het grijze
+   chipje ernaast is dubbelop en zet vier vlekken in beeld bij de start. */
+#screen-scenario[data-layout="hud"]       #hud-observe .sr-tag.tag-todo,
+#screen-scenario[data-layout="immersive"] #hud-observe .sr-tag.tag-todo { display: none; }
+
+/* Knoppenrij als hoekactie in plaats van een volle band. */
+#screen-scenario[data-layout="hud"]       #hud-observe .observation-buttons,
+#screen-scenario[data-layout="immersive"] #hud-observe .observation-buttons {
+  display: flex; justify-content: flex-end;
+  padding: 0 14px 10px; background: transparent; border-top: 0;
+}
+
+/* ── Ingeklapt blijft een chipsbalk (raster terug naar flex) ── */
+#hud-observe.collapsed #sense-list {
+  display: flex !important; flex-direction: row; flex-wrap: wrap; gap: 6px;
+  border-top: 0 !important; padding: 4px 12px 10px !important;
+}
+#hud-observe.collapsed .sense-row {
+  display: inline-flex !important; grid-template-columns: none;
+  align-items: center; gap: 5px; width: auto;
+  padding: 3px 9px !important; border-radius: 12px;
+  border: 1px solid var(--hud-border) !important; border-left-width: 1px !important;
+}
+#hud-observe.collapsed .sense-row.unread { border-color: var(--cyan) !important; }
+#hud-observe.collapsed .sense-row.stale  { border-color: var(--amber) !important; }
+#hud-observe.collapsed .sense-row .sr-tag { display: none; }
+
+/* De scroll-hint lag half over de laatste tekstregel en werd daardoor zelf
+   onleesbaar. Onderin dekkend maken, zodat hij de tekst afsnijdt in plaats
+   van er doorheen te schemeren. */
+#screen-scenario[data-layout="hud"]       #hud-observe #env-more,
+#screen-scenario[data-layout="immersive"] #hud-observe #env-more {
+  margin: 2px -14px -11px; padding: 3px 14px 4px;
+  background: linear-gradient(180deg, rgba(15,19,28,0) 0%, rgba(15,19,28,0.97) 45%, rgba(15,19,28,0.99) 100%);
+}
+
 /* Krappe schermen: chatrail en HUD smaller, anders blijft er van het beeld niets over. */
 @media (max-width: 1180px) {
   #screen-scenario[data-layout="immersive"] #panel-right { width: 300px; }
   #screen-scenario[data-layout="immersive"] #input-bar   { margin-right: 312px; }
-  #screen-scenario[data-layout="immersive"] #hud-observe { width: min(320px, 42%); }
+  #screen-scenario[data-layout="immersive"] #hud-observe { width: min(420px, 46%); }
 }
 
 #input-bar {
@@ -8301,6 +8432,12 @@ function applyLayout(mode) {
     b.classList.toggle('on', b.getAttribute('data-layout-set') === mode);
   });
   try { localStorage.setItem(LAYOUT_KEY, mode); } catch (e) {}
+  // In de HUD-standen is de vaste toelichting verborgen (hij kost daar elke
+  // seconde een regel en staat al in de coach-mark). Hang hem aan de kop, zodat
+  // hij een muisbeweging ver blijft in plaats van te verdwijnen.
+  const _lbl = document.querySelector('#environment-text .env-label');
+  const _note = document.querySelector('#environment-text .env-note');
+  if (_lbl && _note && !_lbl.title) _lbl.title = _note.textContent.trim();
   // Coach-mark en scroll-hint hangen aan afmetingen die zojuist verschoven zijn.
   setTimeout(() => {
     try { positionEnvCoachmark(); } catch (e) {}
